@@ -7,6 +7,7 @@ use Magento\Eav\Api\AttributeGroupRepositoryInterface;
 use Magento\Eav\Api\AttributeManagementInterface;
 use Magento\Eav\Api\AttributeRepositoryInterface;
 use Magento\Eav\Api\Data\AttributeGroupInterfaceFactory;
+use Magento\Eav\Api\Data\AttributeInterface;
 use Magento\Eav\Api\Data\AttributeSetInterfaceFactory;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use SnowIO\AttributeSetCode\Api\CodedAttributeSetRepositoryInterface;
@@ -85,21 +86,20 @@ class CodedAttributeSetRepository implements CodedAttributeSetRepositoryInterfac
 
             foreach ($inputAttributeGroupCodeToIdMap as $attributeGroupCode => $attributeGroupData) {
                 $attributeGroupId = $attributeGroupData['id'];
-                /** @var AttributeGroupInterface $attributeGroup */
+                /** @var AttributeGroupInterface $inputAttributeGroup */
                 $inputAttributeGroup = $attributeGroupData['group'];
                 if ($attributeGroupId === null) {
                     //create an attribute group
                     $attributeGroupId = $this->createAttributeGroup($attributeSetId, $inputAttributeGroup);
                 } else {
                     $attributesInGroup = $this->getAttributes($attributeSet->getEntityType(), $attributeGroupId);
-                    $this->removeAttributesFromGroup
+
+                    $this->removeAttributesFromGroup($attributeGroupId, array_diff($attributesInGroup, $inputAttributeGroup->getAttributes()));
                 }
 
                 $this->assignAttributesInGroup($inputAttributeGroup, $attributeSet->getEntityType(), $attributeSetId,
                     $attributeGroupId);
                 //add the attributes that are not in that group to that group
-
-                //remove any attributes that were not specified in the set of attribute
             }
 
             // todo: commut DB transaction
@@ -110,13 +110,9 @@ class CodedAttributeSetRepository implements CodedAttributeSetRepositoryInterfac
         }
     }
 
-
-    /**
-     * Create an attribute group and assign all the attributes in the interface to the group
-     * @param AttributeGroupInterface $attributeGroup
-     */
     private function createAttributeGroup(int $attributeSetId, AttributeGroupInterface $attributeGroup): int
     {
+        /** @var \Magento\Eav\Api\Data\AttributeGroupInterface $_attributeGroup */
         $_attributeGroup = $this->attributeGroupFactory->create()
             ->setAttributeGroupId(null)
             ->setAttributeGroupName($attributeGroup->getName())
@@ -151,15 +147,15 @@ class CodedAttributeSetRepository implements CodedAttributeSetRepositoryInterfac
     }
 
     private function assignAttributesInGroup(
-        $inputAttributeGroup,
-        $entityType,
-        $attributeSetId,
-        $attributeGroupId
+        AttributeGroupInterface $inputAttributeGroup,
+        int $entityTypeId,
+        int $attributeSetId,
+        int $attributeGroupId
     ) {
         $sortOrder = 0;
         foreach ($inputAttributeGroup->getAttributes() as $attributeCode) {
             $this->attributeManagement->assign(
-                $entityType,
+                $entityTypeId,
                 $attributeSetId,
                 $attributeGroupId,
                 $attributeCode,
@@ -168,25 +164,22 @@ class CodedAttributeSetRepository implements CodedAttributeSetRepositoryInterfac
         }
     }
 
-    private function getAttributes($groupId, $entityTypeId)
+    private function getAttributes(int $groupId, int $entityTypeId)
     {
         $searchCriteria = $this->searchCriteriaBuilder
             ->addFilter(\Magento\Eav\Api\Data\AttributeGroupInterface::GROUP_ID, $groupId)
             ->create();
-        return $this->attributeRepository->getList($entityTypeId, $searchCriteria)->getItems();
+
+        return array_map(function (AttributeInterface $attribute) {
+            return $attribute->getAttributeCode();
+        },$this->attributeRepository->getList($entityTypeId, $searchCriteria)->getItems());
     }
 
-    private function unassignAttributeNotInGroup(
-        $inputAttributeGroup,
-        $getEntityType,
-        $attributeSetId,
-        $attributeGroupId
-    ) {
 
-        $attributesNotInGroup = [];
-
-
-
-
+    private function removeAttributesFromGroup(int $attributeSetId, array $attributesToRemove)
+    {
+        foreach ($attributesToRemove as $attributeToRemove) {
+            $this->attributeManagement->unassign($attributeSetId, $attributeToRemove);
+        }
     }
 }
