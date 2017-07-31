@@ -2,9 +2,8 @@
 
 namespace SnowIO\AttributeSetCode\Test\Integration\Model;
 
-use PHPUnit\Framework\TestCase;
 
-class CodedAttributeSetRepositoryTest extends TestCase
+class CodedAttributeSetRepositoryTest extends \PHPUnit_Framework_TestCase
 {
 
     public function setUp()
