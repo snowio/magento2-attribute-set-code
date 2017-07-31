@@ -12,4 +12,10 @@ class CodedAttributeSetRepositoryTest extends TestCase
 
     }
 
+
+    public function testCall()
+    {
+        self::assertEquals(true,true);
+    }
+
 }
