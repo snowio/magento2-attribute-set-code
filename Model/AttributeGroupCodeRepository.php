@@ -15,11 +15,12 @@ class AttributeGroupCodeRepository
         $this->dbConnection = $dbContext->getResources()->getConnection($connectionName);
     }
 
-    public function getAttributeGroupId($attributeGroupCode)
+    public function getAttributeGroupId(string $attributeGroupCode, int $attributeSetId)
     {
         $select = $this->dbConnection->select()
             ->from(['t' => $this->getAttributeGroupTableName()], 'attribute_group_id')
-            ->where('t.attribute_group_code = ?', $attributeGroupCode);
+            ->where('t.attribute_group_code = ?', $attributeGroupCode)
+            ->where('t.attribute_set_id = ?', $attributeSetId);
 
         $result = $this->dbConnection->fetchOne($select);
         return $result ? (int) $result : null;

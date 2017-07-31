@@ -22,4 +22,9 @@ interface AttributeSetInterface
      * @return null|AttributeGroupInterface[]
      */
     public function getAttributeGroups();
+
+    /**
+     * @return int
+     */
+    public function getEntityType();
 }

@@ -19,5 +19,13 @@
         "psr-4": {
             "SnowIO\\AttributeSetCode\\": ""
         }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "SnowIO\\AttributeSetCode\\Test": "Test"
+        }
+    }
+    "require-dev": {
+        "phpunit/phpunit": "^6.2"
     }
 }
