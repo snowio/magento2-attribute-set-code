@@ -19,7 +19,7 @@ class InstallSchema implements InstallSchemaInterface
             ->newTable($installer->getTable('attribute_set_code'))
             ->addColumn(
                 'attribute_set_id',
-                \Magento\Framework\DB\Ddl\Table::TYPE_INTEGER,
+                \Magento\Framework\DB\Ddl\Table::TYPE_SMALLINT,
                 null,
                 ['unsigned' => true, 'nullable' => false, 'primary' => true],
                 'Attribute Set Id'
@@ -31,6 +31,7 @@ class InstallSchema implements InstallSchemaInterface
                 ['nullable' => false],
                 'Attribute Set Code'
             )
+            /*
             ->addIndex(
                 $installer->getIdxName(
                     'attribute_set_code',
@@ -40,6 +41,7 @@ class InstallSchema implements InstallSchemaInterface
                 ['attribute_set_id', 'attribute_set_code'],
                 ['type' => \Magento\Framework\DB\Adapter\AdapterInterface::INDEX_TYPE_UNIQUE]
             )
+            */
             ->addForeignKey(
                 $installer->getFkName('attribute_set_code', 'attribute_set_id', 'eav_attribute_set', 'attribute_set_id'),
                 'attribute_set_id',
