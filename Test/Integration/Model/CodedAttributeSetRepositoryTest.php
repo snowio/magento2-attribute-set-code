@@ -11,9 +11,7 @@ use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\App\ObjectManager;
 use SnowIO\AttributeSetCode\Api\CodedAttributeSetRepositoryInterface;
 use SnowIO\AttributeSetCode\Api\Data\AttributeGroupInterface;
-use SnowIO\AttributeSetCode\Api\Data\AttributeGroupInterfaceFactory;
 use SnowIO\AttributeSetCode\Api\Data\AttributeSetInterface;
-use SnowIO\AttributeSetCode\Api\Data\AttributeSetInterfaceFactory;
 use SnowIO\AttributeSetCode\Model\AttributeSetCodeRepository;
 
 class CodedAttributeSetRepositoryTest extends \PHPUnit_Framework_TestCase
@@ -81,14 +79,53 @@ class CodedAttributeSetRepositoryTest extends \PHPUnit_Framework_TestCase
         $this->saveAttributeSetAndCheckDb($attributeSet);
     }
 
+    public function testCreateAttributeSetWithNonEmptyGroup()
+    {
+        $attributeSet = $this->createAttributeSet()
+            ->setAttributeSetCode('my-test-attribute-set-1')
+            ->setName('My Test Attribute Set 1')
+            ->setSortOrder(50)
+            ->setEntityTypeCode('catalog_product')
+            ->setAttributeGroups([
+                $this->createAttributeGroup()
+                    ->setAttributeGroupCode('my-test-attribute-group-1')
+                    ->setName('My Test Attribute Group 1')
+                    ->setAttributes(['sku', 'color', 'cost']),
+                $this->createAttributeGroup()
+                    ->setAttributeGroupCode('my-test-attribute-group-2')
+                    ->setName('My Test Attribute Group 2')
+                    ->setAttributes([])
+            ]);
+
+        $this->saveAttributeSetAndCheckDb($attributeSet);
+
+        $attributeSet = $this->createAttributeSet()
+            ->setAttributeSetCode('my-test-attribute-set-1')
+            ->setName('My Test Attribute Set 1')
+            ->setSortOrder(50)
+            ->setEntityTypeCode('catalog_product')
+            ->setAttributeGroups([
+                $this->createAttributeGroup()
+                    ->setAttributeGroupCode('my-test-attribute-group-1')
+                    ->setName('My Test Attribute Group 1')
+                    ->setAttributes(['sku', 'color']),
+                $this->createAttributeGroup()
+                    ->setAttributeGroupCode('my-test-attribute-group-2')
+                    ->setName('My Test Attribute Group 2')
+                    ->setAttributes(['cost'])
+            ]);
+
+        $this->saveAttributeSetAndCheckDb($attributeSet);
+    }
+
     private function createAttributeSet(): AttributeSetInterface
     {
-        return ObjectManager::getInstance()->get(AttributeSetInterfaceFactory::class)->create();
+        return ObjectManager::getInstance()->create(AttributeSetInterface::class);
     }
 
     private function createAttributeGroup(): AttributeGroupInterface
     {
-        return ObjectManager::getInstance()->get(AttributeGroupInterfaceFactory::class)->create();
+        return ObjectManager::getInstance()->create(AttributeGroupInterface::class);
     }
 
     private function saveAttributeSetAndCheckDb(AttributeSetInterface $attributeSet)
