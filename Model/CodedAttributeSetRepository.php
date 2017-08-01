@@ -100,7 +100,7 @@ class CodedAttributeSetRepository implements CodedAttributeSetRepositoryInterfac
                     $this->removeAttributesFromGroup($attributeGroupId, array_diff($attributesInGroup, $inputAttributeGroup->getAttributes()));
                 }
 
-                $this->assignAttributesInGroup($inputAttributeGroup, $entityTypeId, $attributeSetId,
+                $this->assignAttributesInGroup($inputAttributeGroup, $attributeSet->getEntityTypeCode(), $attributeSetId,
                     $attributeGroupId);
             }
 
@@ -150,19 +150,13 @@ class CodedAttributeSetRepository implements CodedAttributeSetRepositoryInterfac
 
     private function assignAttributesInGroup(
         AttributeGroupInterface $inputAttributeGroup,
-        int $entityTypeId,
+        string $entityTypeCode,
         int $attributeSetId,
         int $attributeGroupId
     ) {
         $sortOrder = 0;
-        foreach ($inputAttributeGroup->getAttributes() as $attributeCode) {
-            $this->attributeManagement->assign(
-                $entityTypeId,
-                $attributeSetId,
-                $attributeGroupId,
-                $attributeCode,
-                ++$sortOrder
-            );
+        foreach ($inputAttributeGroup->getAttributes() ?? [] as $attributeCode) {
+            $this->attributeManagement->assign($entityTypeCode, $attributeSetId, $attributeGroupId, $attributeCode, ++$sortOrder);
         }
     }
 
