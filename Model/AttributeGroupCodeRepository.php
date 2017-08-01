@@ -44,7 +44,6 @@ class AttributeGroupCodeRepository
             ->where('a.attribute_set_code = ?', $attributeSetCode);
 
         $result = $this->dbConnection->fetchAll($select);
-
         return $result ? $result : null;
     }
 
@@ -56,7 +55,6 @@ class AttributeGroupCodeRepository
             ->where('a.attribute_set_code = ?', $attributeSetCodes);
 
         $result = $this->dbConnection->fetchAll($select);
-
         return $result ? $result : null;
     }
 

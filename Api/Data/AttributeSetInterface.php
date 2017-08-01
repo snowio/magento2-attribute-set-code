@@ -33,4 +33,35 @@ interface AttributeSetInterface
      * @return null|string
      */
     public function getEntityTypeCode();
+
+    /**
+     * @param string $attributeSetCode
+     * @return \SnowIO\AttributeSetCode\Api\Data\AttributeSetInterface
+     */
+    public function setAttributeSetCode($attributeSetCode);
+
+    /**
+     * @param string $name
+     * @return \SnowIO\AttributeSetCode\Api\Data\AttributeSetInterface
+     */
+    public function setName($name);
+
+    /**
+     * @param int $sortOrder
+     * @return \SnowIO\AttributeSetCode\Api\Data\AttributeSetInterface
+     */
+    public function setSortOrder($sortOrder);
+
+    /**
+     * @param \SnowIO\AttributeSetCode\Api\Data\AttributeGroupInterface[] $attributeGroups
+     * @return \SnowIO\AttributeSetCode\Api\Data\AttributeSetInterface
+     */
+    public function setAttributeGroups($attributeGroups);
+
+    /**
+     * @param string $entityTypeCode
+     * @return \SnowIO\AttributeSetCode\Api\Data\AttributeSetInterface
+     */
+    public function setEntityTypeCode($entityTypeCode);
+    
 }

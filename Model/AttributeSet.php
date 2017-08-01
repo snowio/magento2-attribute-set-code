@@ -57,5 +57,4 @@ class AttributeSet extends DataObject implements AttributeSetInterface
     {
         return $this->setData(AttributeSetInterface::ENTITY_TYPE_CODE, $entityTypeCode);
     }
-    
 }
