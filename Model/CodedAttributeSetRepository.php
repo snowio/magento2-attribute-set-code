@@ -10,6 +10,7 @@ use Magento\Eav\Api\Data\AttributeGroupInterfaceFactory;
 use Magento\Eav\Api\Data\AttributeInterface;
 use Magento\Eav\Api\Data\AttributeSetInterfaceFactory;
 use Magento\Framework\Api\SearchCriteriaBuilder;
+use Magento\Framework\App\ResourceConnection;
 use SnowIO\AttributeSetCode\Api\CodedAttributeSetRepositoryInterface;
 use SnowIO\AttributeSetCode\Api\Data\AttributeGroupInterface;
 use SnowIO\AttributeSetCode\Api\Data\AttributeSetInterface;
@@ -20,11 +21,13 @@ class CodedAttributeSetRepository implements CodedAttributeSetRepositoryInterfac
     private $attributeGroupCodeRepository;
     private $attributeGroupRepository;
     private $attributeSetManagement;
+    /** @var AttributeSetInterfaceFactory */
     private $attributeSetFactory;
     private $attributeGroupFactory;
     private $attributeManagement;
     private $searchCriteriaBuilder;
     private $attributeRepository;
+    private $resourceConnection;
 
     public function __construct(
         AttributeGroupCodeRepository $attributeGroupCodeRepository,
@@ -35,7 +38,8 @@ class CodedAttributeSetRepository implements CodedAttributeSetRepositoryInterfac
         AttributeGroupInterfaceFactory $attributeGroupFactory,
         AttributeManagementInterface $attributeManagement,
         SearchCriteriaBuilder $searchCriteriaBuilder,
-        AttributeRepositoryInterface  $attributeRepository
+        AttributeRepositoryInterface  $attributeRepository,
+        ResourceConnection $resourceConnection
     ) {
         $this->attributeGroupCodeRepository = $attributeGroupCodeRepository;
         $this->attributeSetCodeRepository = $attributeSetCodeRepository;
@@ -46,19 +50,19 @@ class CodedAttributeSetRepository implements CodedAttributeSetRepositoryInterfac
         $this->attributeManagement = $attributeManagement;
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
         $this->attributeRepository = $attributeRepository;
+        $this->resourceConnection = $resourceConnection;
     }
 
     public function save(AttributeSetInterface $attributeSet)
     {
-        //todo: begin DB transaction
-
+        $connection  = $this->resourceConnection->getConnection();
+        $connection->beginTransaction();
         try {
             $attributeSetCode = $attributeSet->getAttributeSetCode();
             $attributeSetId = $this->attributeSetCodeRepository->getAttributeSetId($attributeSetCode);
 
             if (null === $attributeSetId) {
-                $attributeSet = $this->createAttributeSet($attributeSet, 11); //todo look into this id
-                $attributeSetId = $attributeSet->getAttributeSetId();
+                $attributeSetId = $this->createAttributeSet($attributeSet, 11);
             }
 
             $inputAttributeGroups = $attributeSet->getAttributeGroups();
@@ -89,7 +93,6 @@ class CodedAttributeSetRepository implements CodedAttributeSetRepositoryInterfac
                 /** @var AttributeGroupInterface $inputAttributeGroup */
                 $inputAttributeGroup = $attributeGroupData['group'];
                 if ($attributeGroupId === null) {
-                    //create an attribute group
                     $attributeGroupId = $this->createAttributeGroup($attributeSetId, $inputAttributeGroup);
                 } else {
                     $attributesInGroup = $this->getAttributes($attributeSet->getEntityType(), $attributeGroupId);
@@ -99,13 +102,12 @@ class CodedAttributeSetRepository implements CodedAttributeSetRepositoryInterfac
 
                 $this->assignAttributesInGroup($inputAttributeGroup, $attributeSet->getEntityType(), $attributeSetId,
                     $attributeGroupId);
-                //add the attributes that are not in that group to that group
             }
 
-            // todo: commut DB transaction
+            $connection->commit();
             return $attributeSet;
         } catch (\Throwable $e) {
-            // todo: rollback DB transaction
+            $connection->rollBack();
             throw $e;
         }
     }
@@ -133,7 +135,7 @@ class CodedAttributeSetRepository implements CodedAttributeSetRepositoryInterfac
     private function createAttributeSet(
         AttributeSetInterface $attributeSet,
         $skeletonId
-    ) : \Magento\Eav\Api\Data\AttributeSetInterface {
+    ) : int {
         $attributeSetCode = $attributeSet->getAttributeSetCode();
         $_attributeSet = $this->attributeSetFactory->create()
             ->setId(null)
@@ -143,7 +145,7 @@ class CodedAttributeSetRepository implements CodedAttributeSetRepositoryInterfac
 
         $_attributeSet = $this->attributeSetManagement->create($_attributeSet, $skeletonId);
         $this->attributeSetCodeRepository->setAttributeSetId($_attributeSet->getAttributeSetId(), $attributeSetCode);
-        return $_attributeSet;
+        return $_attributeSet->getAttributeSetId();
     }
 
     private function assignAttributesInGroup(
