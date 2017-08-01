@@ -27,4 +27,24 @@ class AttributeGroup extends DataObject implements AttributeGroupInterface
     {
         return $this->getData(AttributeGroupInterface::ATTRIBUTES);
     }
+
+    public function setAttributeGroupCode($attributeGroupCode)
+    {
+        return $this->setData(AttributeGroupInterface::CODE, $attributeGroupCode);
+    }
+
+    public function setName($name)
+    {
+        return $this->setData(AttributeGroupInterface::NAME, $name);
+    }
+
+    public function setSortOrder($sortOrder)
+    {
+        return $this->setData(AttributeGroupInterface::SORT_ORDER, $sortOrder);
+    }
+
+    public function setAttributes($attributes)
+    {
+        return $this->setData(AttributeGroupInterface::ATTRIBUTES, $attributes);
+    }
 }

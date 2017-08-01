@@ -32,4 +32,30 @@ class AttributeSet extends DataObject implements AttributeSetInterface
     {
         return $this->getData(AttributeSetInterface::ENTITY_TYPE_CODE);
     }
+
+    public function setAttributeSetCode($code)
+    {
+        return $this->setData(AttributeSetInterface::CODE, $code);
+    }
+
+    public function setName($name)
+    {
+        return $this->setData(AttributeSetInterface::NAME, $name);
+    }
+
+    public function setSortOrder($sortOrder)
+    {
+        return $this->setData(AttributeSetInterface::SORT_ORDER, $sortOrder);
+    }
+
+    public function setAttributeGroups($attributeGroups)
+    {
+        return $this->setData(AttributeSetInterface::ATTRIBUTE_GROUPS, $attributeGroups);
+    }
+
+    public function setEntityTypeCode($entityTypeCode)
+    {
+        return $this->setData(AttributeSetInterface::ENTITY_TYPE_CODE, $entityTypeCode);
+    }
+    
 }
