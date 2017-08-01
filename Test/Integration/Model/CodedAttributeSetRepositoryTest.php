@@ -11,6 +11,7 @@ use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\App\ObjectManager;
 use SnowIO\AttributeSetCode\Api\CodedAttributeSetRepositoryInterface;
 use SnowIO\AttributeSetCode\Api\Data\AttributeGroupInterface;
+use SnowIO\AttributeSetCode\Api\Data\AttributeGroupInterfaceFactory;
 use SnowIO\AttributeSetCode\Api\Data\AttributeSetInterface;
 use SnowIO\AttributeSetCode\Api\Data\AttributeSetInterfaceFactory;
 use SnowIO\AttributeSetCode\Model\AttributeSetCodeRepository;
@@ -58,6 +59,66 @@ class CodedAttributeSetRepositoryTest extends \PHPUnit_Framework_TestCase
         self::assertAttributeSetCorrectInDb($attributeSet);
     }
 
+    public function testCreateAttributeSetWithImplicitlyEmptyAttributeGroups()
+    {
+        $objectManager = ObjectManager::getInstance();
+        /** @var CodedAttributeSetRepositoryInterface $attributeSetRepository */
+        $attributeSetRepository = $objectManager->get(CodedAttributeSetRepositoryInterface::class);
+        $attributeSetFactory = $objectManager->get(AttributeSetInterfaceFactory::class);
+        $attributeGroupFactory = $objectManager->get(AttributeGroupInterfaceFactory::class);
+
+        /** @var AttributeSetInterface $attributeSet */
+        $attributeSet = $attributeSetFactory->create()
+            ->setAttributeSetCode('my-test-attribute-set-1')
+            ->setName('My Test Attribute Set 1')
+            ->setSortOrder(50)
+            ->setEntityTypeCode('catalog_product')
+            ->setAttributeGroups([
+                $attributeGroupFactory->create()
+                    ->getAttributeGroupCode('my-test-attribute-group-1')
+                    ->setName('My Test Attribute Group 1'),
+                $attributeGroupFactory->create()
+                    ->getAttributeGroupCode('my-test-attribute-group-2')
+                    ->setName('My Test Attribute Group 2')
+            ]);
+
+        $attributeSetRepository->save($attributeSet);
+
+        self::assertAttributeSetCorrectInDb($attributeSet);
+    }
+
+    public function testCreateAttributeSetWithExplicitlyEmptyAttributeGroups()
+    {
+        $objectManager = ObjectManager::getInstance();
+        /** @var CodedAttributeSetRepositoryInterface $attributeSetRepository */
+        $attributeSetRepository = $objectManager->get(CodedAttributeSetRepositoryInterface::class);
+        $attributeSetFactory = $objectManager->get(AttributeSetInterfaceFactory::class);
+        $attributeGroupFactory = $objectManager->get(AttributeGroupInterfaceFactory::class);
+
+        /** @var AttributeSetInterface $attributeSet */
+        $attributeSet = $attributeSetFactory->create()
+            ->setAttributeSetCode('my-test-attribute-set-1')
+            ->setName('My Test Attribute Set 1')
+            ->setSortOrder(50)
+            ->setEntityTypeCode('catalog_product')
+            ->setAttributeGroups([
+                $attributeGroupFactory->create()
+                    ->getAttributeGroupCode('my-test-attribute-group-1')
+                    ->setName('My Test Attribute Group 1')
+                    ->setAttributes([]),
+                $attributeGroupFactory->create()
+                    ->getAttributeGroupCode('my-test-attribute-group-2')
+                    ->setName('My Test Attribute Group 2')
+                    ->setAttributes([])
+            ]);
+
+        $attributeSetRepository->save($attributeSet);
+
+
+
+        self::assertAttributeSetCorrectInDb($attributeSet);
+    }
+
     private static function assertAttributeSetCorrectInDb(AttributeSetInterface $expectedAttributeSet)
     {
         $objectManager = ObjectManager::getInstance();
@@ -65,9 +126,8 @@ class CodedAttributeSetRepositoryTest extends \PHPUnit_Framework_TestCase
         $attributeSetRepository = $objectManager->get(AttributeSetRepositoryInterface::class);
         /** @var AttributeSetCodeRepository $attributeSetCodeRepository */
         $attributeSetCodeRepository = $objectManager->get(AttributeSetCodeRepository::class);
-        /** @var Type $expectedEntityType */
-        $expectedEntityType = $objectManager->create(Type::class)->loadByCode($expectedAttributeSet->getEntityTypeCode()); //todo added this to get the entity type id
-        $attributeSetId = $attributeSetCodeRepository->getAttributeSetId($expectedEntityType->getEntityTypeId(), $expectedAttributeSet->getAttributeSetCode());
+        $expectedEntityTypeId = self::getEntityTypeId($expectedAttributeSet->getEntityTypeCode());
+        $attributeSetId = $attributeSetCodeRepository->getAttributeSetId($expectedEntityTypeId, $expectedAttributeSet->getAttributeSetCode());
         self::assertNotNull($attributeSetId);
         $actualAttributeSet = $attributeSetRepository->get($attributeSetId);
 
@@ -76,11 +136,8 @@ class CodedAttributeSetRepositoryTest extends \PHPUnit_Framework_TestCase
 
     private static function assertAttributeSetAsExpected(AttributeSetInterface $expected, \Magento\Eav\Api\Data\AttributeSetInterface $actual)
     {
-        $objectManager = ObjectManager::getInstance();
-
-        /** @var Type $expectedEntityType */
-        $expectedEntityType = $objectManager->create(Type::class)->loadByCode($expected->getEntityTypeCode());
-        self::assertSame($expectedEntityType->getEntityTypeId(), $actual->getEntityTypeId());
+        $expectedEntityTypeId = self::getEntityTypeId($expected->getEntityTypeCode());
+        self::assertSame($expectedEntityTypeId, $actual->getEntityTypeId());
 
         if ($expected->getName() !== null) {
             self::assertSame($expected->getName(), $actual->getAttributeSetName());
@@ -155,4 +212,12 @@ class CodedAttributeSetRepositoryTest extends \PHPUnit_Framework_TestCase
             self::assertSame($expectedAttributeCodes, $actualAttributeCodes);
         }
     }
+
+    private static function getEntityTypeId(string $entityTypeCode): int
+    {
+        $objectManager = ObjectManager::getInstance();
+        /** @var Type $entityType */
+        $entityType = $objectManager->create(Type::class)->loadByCode($entityTypeCode);
+        return $entityType->getEntityTypeId();
+    }g
 }
