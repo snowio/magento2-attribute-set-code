@@ -217,7 +217,7 @@ class CodedAttributeSetRepositoryTest extends \PHPUnit_Framework_TestCase
     private static function assertAttributeGroupAsExpected(string $entityTypeCode, AttributeGroupInterface $expected, Group $actual)
     {
         $objectManager = ObjectManager::getInstance();
-        /** @var AttributeRepositoryInterface $attributeGroupRepository */
+        /** @var AttributeRepositoryInterface $attributeRepository */
         $attributeRepository = $objectManager->get(AttributeRepositoryInterface::class);
 
         self::assertSame($expected->getName(), $actual->getAttributeGroupName());
