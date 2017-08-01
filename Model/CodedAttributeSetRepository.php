@@ -66,7 +66,7 @@ class CodedAttributeSetRepository implements CodedAttributeSetRepositoryInterfac
             $attributeSetId = $this->attributeSetCodeRepository->getAttributeSetId($entityTypeId, $attributeSetCode);
 
             if (null === $attributeSetId) {
-                $attributeSetId = $this->createAttributeSet($attributeSet, 11);
+                $attributeSetId = $this->createAttributeSet($attributeSet, 1);
             }
 
             $inputAttributeGroups = $attributeSet->getAttributeGroups();
