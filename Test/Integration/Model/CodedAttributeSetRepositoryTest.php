@@ -30,7 +30,7 @@ class CodedAttributeSetRepositoryTest extends \PHPUnit_Framework_TestCase
             'attribute_set_code' => 'my-test-attribute-set-1',
             'name' => 'My Test Attribute Set 1',
             'sort_order' => 50,
-            'entity_type' => 'catalog_product',
+            'entity_type_code' => 'catalog_product',
         ]);
 
         $attributeSetRepository->save($attributeSet);
