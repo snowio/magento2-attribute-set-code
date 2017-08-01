@@ -69,7 +69,7 @@ class CodedAttributeSetRepository implements CodedAttributeSetRepositoryInterfac
                 $attributeSetId = $this->createAttributeSet($attributeSet, 4);
             }
 
-            $inputAttributeGroups = $attributeSet->getAttributeGroups();
+            $inputAttributeGroups = $attributeSet->getAttributeGroups() ?? [];
 
             $inputAttributeGroupCodeToIdMap = array_map(function (AttributeGroupInterface $inputAttributeGroup) use (
                 $attributeSetId
