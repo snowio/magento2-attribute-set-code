@@ -131,19 +131,19 @@ class CodedAttributeSetRepositoryTest extends \PHPUnit_Framework_TestCase
     private function createAttributeSetAndCheckDb(AttributeSetInterface $attributeSet)
     {
         self::removeAttributeSet($attributeSet);
-        $this->saveAttributeSetAndCheckDb($attributeSet);
+        $this->saveAttributeSetAndCheckDb($attributeSet, $attributeSetIsNew = true);
     }
 
-    private function saveAttributeSetAndCheckDb(AttributeSetInterface $attributeSet)
+    private function saveAttributeSetAndCheckDb(AttributeSetInterface $attributeSet, bool $attributeSetIsNew = false)
     {
         $objectManager = ObjectManager::getInstance();
         /** @var CodedAttributeSetRepositoryInterface $attributeSetRepository */
         $attributeSetRepository = $objectManager->get(CodedAttributeSetRepositoryInterface::class);
         $attributeSetRepository->save($attributeSet);
-        self::assertAttributeSetCorrectInDb($attributeSet);
+        self::assertAttributeSetCorrectInDb($attributeSet, $attributeSetIsNew);
     }
 
-    private static function assertAttributeSetCorrectInDb(AttributeSetInterface $expectedAttributeSet)
+    private static function assertAttributeSetCorrectInDb(AttributeSetInterface $expectedAttributeSet, bool $attributeSetIsNew)
     {
         $objectManager = ObjectManager::getInstance();
         /** @var AttributeSetRepositoryInterface $attributeSetRepository */
@@ -155,25 +155,33 @@ class CodedAttributeSetRepositoryTest extends \PHPUnit_Framework_TestCase
         self::assertNotNull($attributeSetId);
         $actualAttributeSet = $attributeSetRepository->get($attributeSetId);
 
-        self::assertAttributeSetAsExpected($expectedAttributeSet, $actualAttributeSet);
+        self::assertAttributeSetAsExpected($expectedAttributeSet, $actualAttributeSet, $attributeSetIsNew);
     }
 
-    private static function assertAttributeSetAsExpected(AttributeSetInterface $expected, \Magento\Eav\Api\Data\AttributeSetInterface $actual)
-    {
+    private static function assertAttributeSetAsExpected(
+        AttributeSetInterface $expected,
+        \Magento\Eav\Api\Data\AttributeSetInterface $actual,
+        bool $attributeSetIsNew
+    ) {
         $expectedEntityTypeId = self::getEntityTypeId($expected->getEntityTypeCode());
-        self::assertSame($expectedEntityTypeId, $actual->getEntityTypeId());
+        self::assertEquals($expectedEntityTypeId, $actual->getEntityTypeId());
 
         if ($expected->getName() !== null) {
             self::assertSame($expected->getName(), $actual->getAttributeSetName());
         }
 
         $expectedAttributeGroups = $expected->getAttributeGroups();
-        if ($expectedAttributeGroups !== null) {
-            self::assertAttributeGroupsAsExpected($expectedAttributeGroups, $actual->getAttributeSetId());
+        if ($expectedAttributeGroups === null) {
+            if ($attributeSetIsNew) {
+                $expectedAttributeGroups = [];
+            } else {
+                return;
+            }
         }
+        self::assertAttributeGroupsAsExpected($expectedAttributeGroups, $actual->getAttributeSetId(), $attributeSetIsNew);
     }
 
-    private static function assertAttributeGroupsAsExpected(array $expectedGroups, string $actualAttributeSetId)
+    private static function assertAttributeGroupsAsExpected(array $expectedGroups, string $actualAttributeSetId, bool $attributeSetIsNew)
     {
         $objectManager = ObjectManager::getInstance();
         /** @var AttributeGroupRepositoryInterface $attributeGroupRepository */
@@ -202,11 +210,11 @@ class CodedAttributeSetRepositoryTest extends \PHPUnit_Framework_TestCase
 
         foreach ($expectedGroupsByCode as $groupCode => $expectedGroup) {
             self::assertArrayHasKey($groupCode, $actualGroupsByCode, "Attribute set is missing group $groupCode.");
-            self::assertAttributeGroupAsExpected($expectedGroup, $actualGroupsByCode[$groupCode]);
+            self::assertAttributeGroupAsExpected($expectedGroup, $actualGroupsByCode[$groupCode], $attributeSetIsNew);
         }
     }
 
-    private static function assertAttributeGroupAsExpected(AttributeGroupInterface $expected, Group $actual)
+    private static function assertAttributeGroupAsExpected(AttributeGroupInterface $expected, Group $actual, bool $attributeSetIsNew)
     {
         $objectManager = ObjectManager::getInstance();
         /** @var AttributeRepositoryInterface $attributeGroupRepository */
@@ -223,18 +231,23 @@ class CodedAttributeSetRepositoryTest extends \PHPUnit_Framework_TestCase
         }
 
         $expectedAttributeCodes = $expected->getAttributes();
-        if ($expectedAttributeCodes !== null) {
-            $searchCriteria = $objectManager->create(SearchCriteriaBuilder::class)
-                ->addFilter('attribute_set_id', $actual->getAttributeSetId())
-                ->addFilter('attribute_group_id', $actual->getAttributeGroupId())
-                ->create();
-            $actualAttributes = $attributeRepository->getList($searchCriteria)->getItems();
-            self::assertSameSize($expected->getAttributes(), $actualAttributes);
-            $actualAttributeCodes = \array_map(function (AttributeInterface $attribute) {
-                return $attribute->getAttributeCode();
-            }, $actualAttributes);
-            self::assertSame($expectedAttributeCodes, $actualAttributeCodes);
+        if ($expectedAttributeCodes === null) {
+            if ($attributeSetIsNew) {
+                $expectedAttributeCodes = [];
+            } else {
+                return;
+            }
         }
+        $searchCriteria = $objectManager->create(SearchCriteriaBuilder::class)
+            ->addFilter('attribute_set_id', $actual->getAttributeSetId())
+            ->addFilter('attribute_group_id', $actual->getAttributeGroupId())
+            ->create();
+        $actualAttributes = $attributeRepository->getList($searchCriteria)->getItems();
+        self::assertSameSize($expected->getAttributes(), $actualAttributes);
+        $actualAttributeCodes = \array_map(function (AttributeInterface $attribute) {
+            return $attribute->getAttributeCode();
+        }, $actualAttributes);
+        self::assertSame($expectedAttributeCodes, $actualAttributeCodes);
     }
 
     private static function getEntityTypeId(string $entityTypeCode): int
@@ -247,6 +260,6 @@ class CodedAttributeSetRepositoryTest extends \PHPUnit_Framework_TestCase
 
     private static function removeAttributeSet(AttributeSetInterface $attributeSet)
     {
-        
+
     }
 }
