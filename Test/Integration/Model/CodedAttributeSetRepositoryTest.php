@@ -266,7 +266,7 @@ class CodedAttributeSetRepositoryTest extends \PHPUnit_Framework_TestCase
             ->addFilter('attribute_group_id', $actual->getAttributeGroupId())
             ->create();
         $actualAttributes = $attributeRepository->getList($entityTypeCode, $searchCriteria)->getItems();
-        self::assertSameSize($expected->getAttributes(), $actualAttributes);
+        self::assertSameSize($expected->getAttributes() ?? [], $actualAttributes);
         $actualAttributeCodes = \array_map(function (AttributeInterface $attribute) {
             return $attribute->getAttributeCode();
         }, $actualAttributes);
