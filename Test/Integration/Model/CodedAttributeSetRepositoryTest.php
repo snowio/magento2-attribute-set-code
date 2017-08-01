@@ -24,7 +24,7 @@ class CodedAttributeSetRepositoryTest extends \PHPUnit_Framework_TestCase
             ->setSortOrder(50)
             ->setEntityTypeCode('catalog_product');
 
-        $this->saveAttributeSetAndCheckDb($attributeSet);
+        $this->createAttributeSetAndCheckDb($attributeSet);
     }
 
     public function testCreateExplicitlyEmptyAttributeSet()
@@ -36,7 +36,7 @@ class CodedAttributeSetRepositoryTest extends \PHPUnit_Framework_TestCase
             ->setEntityTypeCode('catalog_product')
             ->setAttributeGroups([]);
 
-        $this->saveAttributeSetAndCheckDb($attributeSet);
+        $this->createAttributeSetAndCheckDb($attributeSet);
     }
 
     public function testCreateAttributeSetWithImplicitlyEmptyAttributeGroups()
@@ -55,7 +55,7 @@ class CodedAttributeSetRepositoryTest extends \PHPUnit_Framework_TestCase
                     ->setName('My Test Attribute Group 2')
             ]);
 
-        $this->saveAttributeSetAndCheckDb($attributeSet);
+        $this->createAttributeSetAndCheckDb($attributeSet);
     }
 
     public function testCreateAttributeSetWithExplicitlyEmptyAttributeGroups()
@@ -76,7 +76,7 @@ class CodedAttributeSetRepositoryTest extends \PHPUnit_Framework_TestCase
                     ->setAttributes([])
             ]);
 
-        $this->saveAttributeSetAndCheckDb($attributeSet);
+        $this->createAttributeSetAndCheckDb($attributeSet);
     }
 
     public function testCreateAttributeSetWithNonEmptyGroup()
@@ -97,7 +97,7 @@ class CodedAttributeSetRepositoryTest extends \PHPUnit_Framework_TestCase
                     ->setAttributes([])
             ]);
 
-        $this->saveAttributeSetAndCheckDb($attributeSet);
+        $this->createAttributeSetAndCheckDb($attributeSet);
 
         $attributeSet = $this->createAttributeSet()
             ->setAttributeSetCode('my-test-attribute-set-1')
@@ -128,18 +128,19 @@ class CodedAttributeSetRepositoryTest extends \PHPUnit_Framework_TestCase
         return ObjectManager::getInstance()->create(AttributeGroupInterface::class);
     }
 
+    private function createAttributeSetAndCheckDb(AttributeSetInterface $attributeSet)
+    {
+        self::removeAttributeSet($attributeSet);
+        $this->saveAttributeSetAndCheckDb($attributeSet);
+    }
+
     private function saveAttributeSetAndCheckDb(AttributeSetInterface $attributeSet)
     {
         $objectManager = ObjectManager::getInstance();
         /** @var CodedAttributeSetRepositoryInterface $attributeSetRepository */
         $attributeSetRepository = $objectManager->get(CodedAttributeSetRepositoryInterface::class);
         $attributeSetRepository->save($attributeSet);
-
-        try {
-            self::assertAttributeSetCorrectInDb($attributeSet);
-        } finally {
-            self::removeAttributeSet($attributeSet);
-        }
+        self::assertAttributeSetCorrectInDb($attributeSet);
     }
 
     private static function assertAttributeSetCorrectInDb(AttributeSetInterface $expectedAttributeSet)
@@ -246,6 +247,6 @@ class CodedAttributeSetRepositoryTest extends \PHPUnit_Framework_TestCase
 
     private static function removeAttributeSet(AttributeSetInterface $attributeSet)
     {
-
+        
     }
 }
