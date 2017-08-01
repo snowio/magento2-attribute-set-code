@@ -219,5 +219,5 @@ class CodedAttributeSetRepositoryTest extends \PHPUnit_Framework_TestCase
         /** @var Type $entityType */
         $entityType = $objectManager->create(Type::class)->loadByCode($entityTypeCode);
         return $entityType->getEntityTypeId();
-    }g
+    }
 }
