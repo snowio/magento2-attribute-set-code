@@ -18,30 +18,30 @@ class CodedAttributeSetRepositoryTest extends \PHPUnit_Framework_TestCase
 {
     public function testCreateImplicitlyEmptyAttributeSet()
     {
-        $attributeSet = $this->createAttributeSet()
+        $attributeSetData = $this->createAttributeSet()
             ->setEntityTypeCode('catalog_product')
             ->setAttributeSetCode('my-test-attribute-set-1')
             ->setName('My Test Attribute Set 1')
             ->setSortOrder(50);
 
-        $this->saveNewAttributeSetAndCheckDb($attributeSet);
+        $this->saveNewAttributeSetAndCheckDb($attributeSetData);
     }
 
     public function testCreateExplicitlyEmptyAttributeSet()
     {
-        $attributeSet = $this->createAttributeSet()
+        $attributeSetData = $this->createAttributeSet()
             ->setEntityTypeCode('catalog_product')
             ->setAttributeSetCode('my-test-attribute-set-1')
             ->setName('My Test Attribute Set 1')
             ->setSortOrder(50)
             ->setAttributeGroups([]);
 
-        $this->saveNewAttributeSetAndCheckDb($attributeSet);
+        $this->saveNewAttributeSetAndCheckDb($attributeSetData);
     }
 
     public function testCreateAttributeSetWithImplicitlyEmptyAttributeGroups()
     {
-        $attributeSet = $this->createAttributeSet()
+        $attributeSetData = $this->createAttributeSet()
             ->setEntityTypeCode('catalog_product')
             ->setAttributeSetCode('my-test-attribute-set-1')
             ->setName('My Test Attribute Set 1')
@@ -55,12 +55,12 @@ class CodedAttributeSetRepositoryTest extends \PHPUnit_Framework_TestCase
                     ->setName('My Test Attribute Group 2')
             ]);
 
-        $this->saveNewAttributeSetAndCheckDb($attributeSet);
+        $this->saveNewAttributeSetAndCheckDb($attributeSetData);
     }
 
     public function testCreateAttributeSetWithExplicitlyEmptyAttributeGroups()
     {
-        $attributeSet = $this->createAttributeSet()
+        $attributeSetData = $this->createAttributeSet()
             ->setEntityTypeCode('catalog_product')
             ->setAttributeSetCode('my-test-attribute-set-1')
             ->setName('My Test Attribute Set 1')
@@ -76,12 +76,12 @@ class CodedAttributeSetRepositoryTest extends \PHPUnit_Framework_TestCase
                     ->setAttributes([])
             ]);
 
-        $this->saveNewAttributeSetAndCheckDb($attributeSet);
+        $this->saveNewAttributeSetAndCheckDb($attributeSetData);
     }
 
     public function testCreateAttributeSetWithNonEmptyGroup()
     {
-        $fullAttributeSet = $this->createAttributeSet()
+        $fullAttributeSetData = $this->createAttributeSet()
             ->setEntityTypeCode('catalog_product')
             ->setAttributeSetCode('my-test-attribute-set-1')
             ->setName('My Test Attribute Set 1')
@@ -97,20 +97,20 @@ class CodedAttributeSetRepositoryTest extends \PHPUnit_Framework_TestCase
                     ->setAttributes([])
             ]);
 
-        $this->saveNewAttributeSetAndCheckDb($fullAttributeSet);
+        $this->saveNewAttributeSetAndCheckDb($fullAttributeSetData);
 
-        $partialAttributeSet1 = $this->createAttributeSet()
-            ->setEntityTypeCode($fullAttributeSet->getEntityTypeCode())
-            ->setAttributeSetCode($fullAttributeSet->getAttributeSetCode())
+        $partialAttributeSetData1 = $this->createAttributeSet()
+            ->setEntityTypeCode($fullAttributeSetData->getEntityTypeCode())
+            ->setAttributeSetCode($fullAttributeSetData->getAttributeSetCode())
             ->setName('My Test Attribute Set 1 - renamed!');
-        $this->saveAttributeSet($partialAttributeSet1);
+        $this->saveAttributeSet($partialAttributeSetData1);
 
-        $fullAttributeSet->setName($partialAttributeSet1->getName());
-        self::assertAttributeSetCorrectInDb($fullAttributeSet);
+        $fullAttributeSetData->setName($partialAttributeSetData1->getName());
+        self::assertAttributeSetCorrectInDb($fullAttributeSetData);
 
-        $partialAttributeSet2 = $this->createAttributeSet()
-            ->setEntityTypeCode($fullAttributeSet->getEntityTypeCode())
-            ->setAttributeSetCode($fullAttributeSet->getAttributeSetCode())
+        $partialAttributeSetData2 = $this->createAttributeSet()
+            ->setEntityTypeCode($fullAttributeSetData->getEntityTypeCode())
+            ->setAttributeSetCode($fullAttributeSetData->getAttributeSetCode())
             ->setAttributeGroups([
                 $this->createAttributeGroup()
                     ->setAttributeGroupCode('my-test-attribute-group-1')
@@ -121,10 +121,10 @@ class CodedAttributeSetRepositoryTest extends \PHPUnit_Framework_TestCase
                     ->setName('My Test Attribute Group 2 - renamed!')
                     ->setAttributes(['cost'])
             ]);
-        $this->saveAttributeSet($partialAttributeSet2);
+        $this->saveAttributeSet($partialAttributeSetData2);
 
-        $fullAttributeSet->setAttributeGroups($partialAttributeSet2->getAttributeGroups());
-        self::assertAttributeSetCorrectInDb($fullAttributeSet);
+        $fullAttributeSetData->setAttributeGroups($partialAttributeSetData2->getAttributeGroups());
+        self::assertAttributeSetCorrectInDb($fullAttributeSetData);
     }
 
     private function createAttributeSet(): AttributeSetInterface
