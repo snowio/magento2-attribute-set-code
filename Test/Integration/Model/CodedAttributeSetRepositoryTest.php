@@ -125,6 +125,39 @@ class CodedAttributeSetRepositoryTest extends \PHPUnit_Framework_TestCase
 
         $fullAttributeSetData->setAttributeGroups($partialAttributeSetData2->getAttributeGroups());
         self::assertAttributeSetCorrectInDb($fullAttributeSetData);
+
+        $partialAttributeSetData3 = $this->createAttributeSet()
+            ->setEntityTypeCode($fullAttributeSetData->getEntityTypeCode())
+            ->setAttributeSetCode($fullAttributeSetData->getAttributeSetCode())
+            ->setAttributeGroups([
+                $this->createAttributeGroup()
+                    ->setAttributeGroupCode('my-test-attribute-group-1')
+                    ->setSortOrder(5)
+                    ->setAttributes(['sku', 'color'])
+            ]);
+        $this->saveAttributeSet($partialAttributeSetData3);
+
+        $fullAttributeSetData->setAttributeGroups($partialAttributeSetData3->getAttributeGroups());
+        self::assertAttributeSetCorrectInDb($fullAttributeSetData);
+
+        $partialAttributeSetData4 = $this->createAttributeSet()
+            ->setEntityTypeCode($fullAttributeSetData->getEntityTypeCode())
+            ->setAttributeSetCode($fullAttributeSetData->getAttributeSetCode())
+            ->setAttributeGroups([
+                $this->createAttributeGroup()
+                    ->setAttributeGroupCode('my-test-attribute-group-1')
+                    ->setName('My Test Attribute Group 1 - renamed')
+            ]);
+        $this->saveAttributeSet($partialAttributeSetData4);
+
+        $fullAttributeSetData->setAttributeGroups([
+            $this->createAttributeGroup()
+                ->setAttributeGroupCode('my-test-attribute-group-1')
+                ->setName('My Test Attribute Group 1 - renamed')
+                ->setSortOrder(5)
+                ->setAttributes(['sku', 'color']),
+        ]);
+        self::assertAttributeSetCorrectInDb($fullAttributeSetData);
     }
 
     private function createAttributeSet(): AttributeSetInterface
