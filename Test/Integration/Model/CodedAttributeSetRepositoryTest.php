@@ -20,103 +20,89 @@ class CodedAttributeSetRepositoryTest extends \PHPUnit_Framework_TestCase
 {
     public function testCreateImplicitlyEmptyAttributeSet()
     {
-        $objectManager = ObjectManager::getInstance();
-        /** @var CodedAttributeSetRepositoryInterface $attributeSetRepository */
-        $attributeSetRepository = $objectManager->get(CodedAttributeSetRepositoryInterface::class);
-        /** @var AttributeSetInterfaceFactory $attributeSetFactory */
-        $attributeSetFactory = $objectManager->get(AttributeSetInterfaceFactory::class);
-
-        /** @var AttributeSetInterface $attributeSet */
-        $attributeSet = $attributeSetFactory->create()
+        $attributeSet = $this->createAttributeSet()
             ->setAttributeSetCode('my-test-attribute-set-1')
             ->setName('My Test Attribute Set 1')
             ->setSortOrder(50)
             ->setEntityTypeCode('catalog_product');
 
-        $attributeSetRepository->save($attributeSet);
-
-        self::assertAttributeSetCorrectInDb($attributeSet);
+        $this->saveAttributeSetAndCheckDb($attributeSet);
     }
 
     public function testCreateExplicitlyEmptyAttributeSet()
     {
-        $objectManager = ObjectManager::getInstance();
-        /** @var CodedAttributeSetRepositoryInterface $attributeSetRepository */
-        $attributeSetRepository = $objectManager->get(CodedAttributeSetRepositoryInterface::class);
-        /** @var AttributeSetInterfaceFactory $attributeSetFactory */
-        $attributeSetFactory = $objectManager->get(AttributeSetInterfaceFactory::class);
-
-        /** @var AttributeSetInterface $attributeSet */
-        $attributeSet = $attributeSetFactory->create()
+        $attributeSet = $this->createAttributeSet()
             ->setAttributeSetCode('my-test-attribute-set-1')
             ->setName('My Test Attribute Set 1')
             ->setSortOrder(50)
             ->setEntityTypeCode('catalog_product')
             ->setAttributeGroups([]);
 
-        $attributeSetRepository->save($attributeSet);
-
-        self::assertAttributeSetCorrectInDb($attributeSet);
+        $this->saveAttributeSetAndCheckDb($attributeSet);
     }
 
     public function testCreateAttributeSetWithImplicitlyEmptyAttributeGroups()
     {
-        $objectManager = ObjectManager::getInstance();
-        /** @var CodedAttributeSetRepositoryInterface $attributeSetRepository */
-        $attributeSetRepository = $objectManager->get(CodedAttributeSetRepositoryInterface::class);
-        $attributeSetFactory = $objectManager->get(AttributeSetInterfaceFactory::class);
-        $attributeGroupFactory = $objectManager->get(AttributeGroupInterfaceFactory::class);
-
-        /** @var AttributeSetInterface $attributeSet */
-        $attributeSet = $attributeSetFactory->create()
+        $attributeSet = $this->createAttributeSet()
             ->setAttributeSetCode('my-test-attribute-set-1')
             ->setName('My Test Attribute Set 1')
             ->setSortOrder(50)
             ->setEntityTypeCode('catalog_product')
             ->setAttributeGroups([
-                $attributeGroupFactory->create()
-                    ->getAttributeGroupCode('my-test-attribute-group-1')
+                $this->createAttributeGroup()
+                    ->setAttributeGroupCode('my-test-attribute-group-1')
                     ->setName('My Test Attribute Group 1'),
-                $attributeGroupFactory->create()
-                    ->getAttributeGroupCode('my-test-attribute-group-2')
+                $this->createAttributeGroup()
+                    ->setAttributeGroupCode('my-test-attribute-group-2')
                     ->setName('My Test Attribute Group 2')
             ]);
 
-        $attributeSetRepository->save($attributeSet);
-
-        self::assertAttributeSetCorrectInDb($attributeSet);
+        $this->saveAttributeSetAndCheckDb($attributeSet);
     }
 
     public function testCreateAttributeSetWithExplicitlyEmptyAttributeGroups()
     {
-        $objectManager = ObjectManager::getInstance();
-        /** @var CodedAttributeSetRepositoryInterface $attributeSetRepository */
-        $attributeSetRepository = $objectManager->get(CodedAttributeSetRepositoryInterface::class);
-        $attributeSetFactory = $objectManager->get(AttributeSetInterfaceFactory::class);
-        $attributeGroupFactory = $objectManager->get(AttributeGroupInterfaceFactory::class);
-
-        /** @var AttributeSetInterface $attributeSet */
-        $attributeSet = $attributeSetFactory->create()
+        $attributeSet = $this->createAttributeSet()
             ->setAttributeSetCode('my-test-attribute-set-1')
             ->setName('My Test Attribute Set 1')
             ->setSortOrder(50)
             ->setEntityTypeCode('catalog_product')
             ->setAttributeGroups([
-                $attributeGroupFactory->create()
-                    ->getAttributeGroupCode('my-test-attribute-group-1')
+                $this->createAttributeGroup()
+                    ->setAttributeGroupCode('my-test-attribute-group-1')
                     ->setName('My Test Attribute Group 1')
                     ->setAttributes([]),
-                $attributeGroupFactory->create()
-                    ->getAttributeGroupCode('my-test-attribute-group-2')
+                $this->createAttributeGroup()
+                    ->setAttributeGroupCode('my-test-attribute-group-2')
                     ->setName('My Test Attribute Group 2')
                     ->setAttributes([])
             ]);
 
+        $this->saveAttributeSetAndCheckDb($attributeSet);
+    }
+
+    private function createAttributeSet(): AttributeSetInterface
+    {
+        return ObjectManager::getInstance()->get(AttributeSetInterfaceFactory::class)->create();
+    }
+
+    private function createAttributeGroup(): AttributeGroupInterface
+    {
+        return ObjectManager::getInstance()->get(AttributeGroupInterfaceFactory::class)->create();
+    }
+
+    private function saveAttributeSetAndCheckDb(AttributeSetInterface $attributeSet)
+    {
+        $objectManager = ObjectManager::getInstance();
+        /** @var CodedAttributeSetRepositoryInterface $attributeSetRepository */
+        $attributeSetRepository = $objectManager->get(CodedAttributeSetRepositoryInterface::class);
         $attributeSetRepository->save($attributeSet);
 
-
-
-        self::assertAttributeSetCorrectInDb($attributeSet);
+        try {
+            self::assertAttributeSetCorrectInDb($attributeSet);
+        } finally {
+            self::removeAttributeSet($attributeSet);
+        }
     }
 
     private static function assertAttributeSetCorrectInDb(AttributeSetInterface $expectedAttributeSet)
@@ -219,5 +205,10 @@ class CodedAttributeSetRepositoryTest extends \PHPUnit_Framework_TestCase
         /** @var Type $entityType */
         $entityType = $objectManager->create(Type::class)->loadByCode($entityTypeCode);
         return $entityType->getEntityTypeId();
+    }
+
+    private static function removeAttributeSet(AttributeSetInterface $attributeSet)
+    {
+
     }
 }
