@@ -70,20 +70,16 @@ class CodedAttributeSetRepository implements CodedAttributeSetRepositoryInterfac
             }
 
             $inputAttributeGroups = $attributeSet->getAttributeGroups() ?? [];
+            $inputAttributeGroupCodeToIdMap = [];
 
-            $inputAttributeGroupCodeToIdMap = array_map(function (AttributeGroupInterface $inputAttributeGroup) use (
-                $attributeSetId
-            ) {
+            foreach ($inputAttributeGroups as $inputAttributeGroup) {
                 $attributeGroupCode = $inputAttributeGroup->getAttributeGroupCode();
-                return [
-                    $inputAttributeGroup->getAttributeGroupCode() =>
-                        [
-                            'id' => $this->attributeGroupCodeRepository->getAttributeGroupId($attributeGroupCode,
-                                $attributeSetId),
-                            'group' => $inputAttributeGroup
-                        ]
+                $inputAttributeGroup[] = [
+                    'id' =>  $this->attributeGroupCodeRepository->getAttributeGroupId($attributeGroupCode,
+                        $attributeSetId),
+                    'group' => $inputAttributeGroup
                 ];
-            }, $inputAttributeGroups);
+            }
 
             //input attribute group code is a map that contains attribute group code -> attribute group id
             $existingAttributeGroupIds = $this->attributeGroupCodeRepository->getAttributeGroupIds($attributeSetCode) ?? [];
