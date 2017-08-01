@@ -79,6 +79,23 @@ class CodedAttributeSetRepositoryTest extends \PHPUnit_Framework_TestCase
         $this->saveNewAttributeSetAndCheckDb($attributeSetData);
     }
 
+    public function testDifferentEntityTypesCanUseSameAttributeSetCode()
+    {
+        $productAttributeSet = $this->createAttributeSet()
+            ->setEntityTypeCode('catalog_product')
+            ->setAttributeSetCode('my-test-attribute-set')
+            ->setName('My Test Product Attribute Set');
+        $this->saveNewAttributeSetAndCheckDb($productAttributeSet);
+
+        $categoryAttributeSet = $this->createAttributeSet()
+            ->setEntityTypeCode('catalog_category')
+            ->setAttributeSetCode('my-test-attribute-set')
+            ->setName('My Test Category Attribute Set');
+        $this->saveNewAttributeSetAndCheckDb($categoryAttributeSet);
+
+        self::assertAttributeSetCorrectInDb($productAttributeSet);
+    }
+
     public function testCreateAttributeSetWithNonEmptyGroup()
     {
         $fullAttributeSetData = $this->createAttributeSet()
