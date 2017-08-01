@@ -26,12 +26,11 @@ class CodedAttributeSetRepositoryTest extends \PHPUnit_Framework_TestCase
         $attributeSetFactory = $objectManager->get(AttributeSetInterfaceFactory::class);
 
         /** @var AttributeSetInterface $attributeSet */
-        $attributeSet = $attributeSetFactory->create([
-            'attribute_set_code' => 'my-test-attribute-set-1',
-            'name' => 'My Test Attribute Set 1',
-            'sort_order' => 50,
-            'entity_type_code' => 'catalog_product',
-        ]);
+        $attributeSet = $attributeSetFactory->create()
+            ->setAttributeSetCode('my-test-attribute-set-1')
+            ->setName('My Test Attribute Set 1')
+            ->setSortOrder(50)
+            ->setEntityTypeCode('catalog_product');
 
         $attributeSetRepository->save($attributeSet);
 
