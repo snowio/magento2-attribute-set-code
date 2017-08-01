@@ -177,7 +177,7 @@ class CodedAttributeSetRepositoryTest extends \PHPUnit_Framework_TestCase
         );
 
         foreach ($expectedGroupsByCode as $groupCode => $expectedGroup) {
-            self::assertArrayHasKey($groupCode, $actualGroupsByCode, "Attribute set is missing group $groupCode."));
+            self::assertArrayHasKey($groupCode, $actualGroupsByCode, "Attribute set is missing group $groupCode.");
             self::assertAttributeGroupAsExpected($expectedGroup, $actualGroupsByCode[$groupCode]);
         }
     }
