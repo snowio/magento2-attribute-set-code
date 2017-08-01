@@ -19,7 +19,7 @@ class AttributeSetCodeRepository
     {
         $select = $this->dbConnection->select()
             ->from(['c' => $this->getAttributeSetCodeTableName()], 'attribute_set_id')
-            ->join(['a' => $this->getAttributeTableName()], 'a.attribute_set_id=c.attribute_set_id', [])
+            ->join(['a' => $this->getAttributeSetTableName()], 'a.attribute_set_id=c.attribute_set_id', [])
             ->where('c.attribute_set_code = ?', $attributeSetCode)
             ->where('a.entity_type_id = ?', $entityTypeId);
 
@@ -50,8 +50,8 @@ class AttributeSetCodeRepository
         return $this->dbConnection->getTableName('attribute_set_code');
     }
 
-    private function getAttributeTableName()
+    private function getAttributeSetTableName()
     {
-        return $this->dbConnection->getTableName('eav_attribute');
+        return $this->dbConnection->getTableName('eav_attribute_set');
     }
 }
