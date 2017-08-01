@@ -121,7 +121,7 @@ class CodedAttributeSetRepositoryTest extends \PHPUnit_Framework_TestCase
                     ->setName('My Test Attribute Group 2 - renamed!')
                     ->setAttributes(['cost'])
             ]);
-        $this->saveAttributeSetAndCheckDb($partialAttributeSet2);
+        $this->saveAttributeSet($partialAttributeSet2);
 
         $fullAttributeSet->setAttributeGroups($partialAttributeSet2->getAttributeGroups());
         self::assertAttributeSetCorrectInDb($fullAttributeSet);
