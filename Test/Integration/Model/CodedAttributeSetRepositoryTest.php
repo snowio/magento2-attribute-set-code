@@ -19,33 +19,33 @@ class CodedAttributeSetRepositoryTest extends \PHPUnit_Framework_TestCase
     public function testCreateImplicitlyEmptyAttributeSet()
     {
         $attributeSet = $this->createAttributeSet()
+            ->setEntityTypeCode('catalog_product')
             ->setAttributeSetCode('my-test-attribute-set-1')
             ->setName('My Test Attribute Set 1')
-            ->setSortOrder(50)
-            ->setEntityTypeCode('catalog_product');
+            ->setSortOrder(50);
 
-        $this->createAttributeSetAndCheckDb($attributeSet);
+        $this->saveNewAttributeSetAndCheckDb($attributeSet);
     }
 
     public function testCreateExplicitlyEmptyAttributeSet()
     {
         $attributeSet = $this->createAttributeSet()
+            ->setEntityTypeCode('catalog_product')
             ->setAttributeSetCode('my-test-attribute-set-1')
             ->setName('My Test Attribute Set 1')
             ->setSortOrder(50)
-            ->setEntityTypeCode('catalog_product')
             ->setAttributeGroups([]);
 
-        $this->createAttributeSetAndCheckDb($attributeSet);
+        $this->saveNewAttributeSetAndCheckDb($attributeSet);
     }
 
     public function testCreateAttributeSetWithImplicitlyEmptyAttributeGroups()
     {
         $attributeSet = $this->createAttributeSet()
+            ->setEntityTypeCode('catalog_product')
             ->setAttributeSetCode('my-test-attribute-set-1')
             ->setName('My Test Attribute Set 1')
             ->setSortOrder(50)
-            ->setEntityTypeCode('catalog_product')
             ->setAttributeGroups([
                 $this->createAttributeGroup()
                     ->setAttributeGroupCode('my-test-attribute-group-1')
@@ -55,16 +55,16 @@ class CodedAttributeSetRepositoryTest extends \PHPUnit_Framework_TestCase
                     ->setName('My Test Attribute Group 2')
             ]);
 
-        $this->createAttributeSetAndCheckDb($attributeSet);
+        $this->saveNewAttributeSetAndCheckDb($attributeSet);
     }
 
     public function testCreateAttributeSetWithExplicitlyEmptyAttributeGroups()
     {
         $attributeSet = $this->createAttributeSet()
+            ->setEntityTypeCode('catalog_product')
             ->setAttributeSetCode('my-test-attribute-set-1')
             ->setName('My Test Attribute Set 1')
             ->setSortOrder(50)
-            ->setEntityTypeCode('catalog_product')
             ->setAttributeGroups([
                 $this->createAttributeGroup()
                     ->setAttributeGroupCode('my-test-attribute-group-1')
@@ -76,16 +76,16 @@ class CodedAttributeSetRepositoryTest extends \PHPUnit_Framework_TestCase
                     ->setAttributes([])
             ]);
 
-        $this->createAttributeSetAndCheckDb($attributeSet);
+        $this->saveNewAttributeSetAndCheckDb($attributeSet);
     }
 
     public function testCreateAttributeSetWithNonEmptyGroup()
     {
-        $attributeSet = $this->createAttributeSet()
+        $fullAttributeSet = $this->createAttributeSet()
+            ->setEntityTypeCode('catalog_product')
             ->setAttributeSetCode('my-test-attribute-set-1')
             ->setName('My Test Attribute Set 1')
             ->setSortOrder(50)
-            ->setEntityTypeCode('catalog_product')
             ->setAttributeGroups([
                 $this->createAttributeGroup()
                     ->setAttributeGroupCode('my-test-attribute-group-1')
@@ -97,25 +97,34 @@ class CodedAttributeSetRepositoryTest extends \PHPUnit_Framework_TestCase
                     ->setAttributes([])
             ]);
 
-        $this->createAttributeSetAndCheckDb($attributeSet);
+        $this->saveNewAttributeSetAndCheckDb($fullAttributeSet);
 
-        $attributeSet = $this->createAttributeSet()
-            ->setAttributeSetCode('my-test-attribute-set-1')
-            ->setName('My Test Attribute Set 1')
-            ->setSortOrder(50)
-            ->setEntityTypeCode('catalog_product')
+        $partialAttributeSet1 = $this->createAttributeSet()
+            ->setEntityTypeCode($fullAttributeSet->getEntityTypeCode())
+            ->setAttributeSetCode($fullAttributeSet->getAttributeSetCode())
+            ->setName('My Test Attribute Set 1 - renamed!');
+        $this->saveAttributeSet($partialAttributeSet1);
+
+        $fullAttributeSet->setName($partialAttributeSet1->getName());
+        self::assertAttributeSetCorrectInDb($fullAttributeSet);
+
+        $partialAttributeSet2 = $this->createAttributeSet()
+            ->setEntityTypeCode($fullAttributeSet->getEntityTypeCode())
+            ->setAttributeSetCode($fullAttributeSet->getAttributeSetCode())
             ->setAttributeGroups([
                 $this->createAttributeGroup()
                     ->setAttributeGroupCode('my-test-attribute-group-1')
-                    ->setName('My Test Attribute Group 1')
+                    ->setSortOrder(5)
                     ->setAttributes(['sku', 'color']),
                 $this->createAttributeGroup()
                     ->setAttributeGroupCode('my-test-attribute-group-2')
-                    ->setName('My Test Attribute Group 2')
+                    ->setName('My Test Attribute Group 2 - renamed!')
                     ->setAttributes(['cost'])
             ]);
+        $this->saveAttributeSetAndCheckDb($partialAttributeSet2);
 
-        $this->saveAttributeSetAndCheckDb($attributeSet);
+        $fullAttributeSet->setAttributeGroups($partialAttributeSet2->getAttributeGroups());
+        self::assertAttributeSetCorrectInDb($fullAttributeSet);
     }
 
     private function createAttributeSet(): AttributeSetInterface
@@ -128,22 +137,33 @@ class CodedAttributeSetRepositoryTest extends \PHPUnit_Framework_TestCase
         return ObjectManager::getInstance()->create(AttributeGroupInterface::class);
     }
 
-    private function createAttributeSetAndCheckDb(AttributeSetInterface $attributeSet)
+    private function saveNewAttributeSetAndCheckDb(AttributeSetInterface $attributeSet)
     {
-        self::removeAttributeSet($attributeSet);
-        $this->saveAttributeSetAndCheckDb($attributeSet, $attributeSetIsNew = true);
+        $this->saveNewAttributeSet($attributeSet);
+        self::assertAttributeSetCorrectInDb($attributeSet);
     }
 
-    private function saveAttributeSetAndCheckDb(AttributeSetInterface $attributeSet, bool $attributeSetIsNew = false)
+    private function saveAttributeSetAndCheckDb(AttributeSetInterface $attributeSet)
+    {
+        $this->saveAttributeSet($attributeSet);
+        self::assertAttributeSetCorrectInDb($attributeSet);
+    }
+
+    private function saveNewAttributeSet(AttributeSetInterface $attributeSet)
+    {
+        self::removeAttributeSet($attributeSet);
+        self::saveAttributeSet($attributeSet);
+    }
+
+    private function saveAttributeSet(AttributeSetInterface $attributeSet)
     {
         $objectManager = ObjectManager::getInstance();
         /** @var CodedAttributeSetRepositoryInterface $attributeSetRepository */
         $attributeSetRepository = $objectManager->get(CodedAttributeSetRepositoryInterface::class);
         $attributeSetRepository->save($attributeSet);
-        self::assertAttributeSetCorrectInDb($attributeSet, $attributeSetIsNew);
     }
 
-    private static function assertAttributeSetCorrectInDb(AttributeSetInterface $expectedAttributeSet, bool $attributeSetIsNew)
+    private static function assertAttributeSetCorrectInDb(AttributeSetInterface $expectedAttributeSet)
     {
         $objectManager = ObjectManager::getInstance();
         /** @var AttributeSetRepositoryInterface $attributeSetRepository */
@@ -155,33 +175,19 @@ class CodedAttributeSetRepositoryTest extends \PHPUnit_Framework_TestCase
         self::assertNotNull($attributeSetId);
         $actualAttributeSet = $attributeSetRepository->get($attributeSetId);
 
-        self::assertAttributeSetAsExpected($expectedAttributeSet, $actualAttributeSet, $attributeSetIsNew);
+        self::assertAttributeSetAsExpected($expectedAttributeSet, $actualAttributeSet);
     }
 
-    private static function assertAttributeSetAsExpected(
-        AttributeSetInterface $expected,
-        \Magento\Eav\Api\Data\AttributeSetInterface $actual,
-        bool $attributeSetIsNew
-    ) {
+    private static function assertAttributeSetAsExpected(AttributeSetInterface $expected, \Magento\Eav\Api\Data\AttributeSetInterface $actual)
+    {
         $expectedEntityTypeId = self::getEntityTypeId($expected->getEntityTypeCode());
         self::assertEquals($expectedEntityTypeId, $actual->getEntityTypeId());
-
-        if ($expected->getName() !== null) {
-            self::assertSame($expected->getName(), $actual->getAttributeSetName());
-        }
-
-        $expectedAttributeGroups = $expected->getAttributeGroups();
-        if ($expectedAttributeGroups === null) {
-            if ($attributeSetIsNew) {
-                $expectedAttributeGroups = [];
-            } else {
-                return;
-            }
-        }
-        self::assertAttributeGroupsAsExpected($expectedAttributeGroups, $actual->getAttributeSetId(), $attributeSetIsNew);
+        self::assertSame($expected->getName(), $actual->getAttributeSetName());
+        $expectedAttributeGroups = $expected->getAttributeGroups() ?? [];
+        self::assertAttributeGroupsAsExpected($expectedAttributeGroups, $actual->getAttributeSetId());
     }
 
-    private static function assertAttributeGroupsAsExpected(array $expectedGroups, string $actualAttributeSetId, bool $attributeSetIsNew)
+    private static function assertAttributeGroupsAsExpected(array $expectedGroups, string $actualAttributeSetId)
     {
         $objectManager = ObjectManager::getInstance();
         /** @var AttributeGroupRepositoryInterface $attributeGroupRepository */
@@ -210,34 +216,24 @@ class CodedAttributeSetRepositoryTest extends \PHPUnit_Framework_TestCase
 
         foreach ($expectedGroupsByCode as $groupCode => $expectedGroup) {
             self::assertArrayHasKey($groupCode, $actualGroupsByCode, "Attribute set is missing group $groupCode.");
-            self::assertAttributeGroupAsExpected($expectedGroup, $actualGroupsByCode[$groupCode], $attributeSetIsNew);
+            self::assertAttributeGroupAsExpected($expectedGroup, $actualGroupsByCode[$groupCode]);
         }
     }
 
-    private static function assertAttributeGroupAsExpected(AttributeGroupInterface $expected, Group $actual, bool $attributeSetIsNew)
+    private static function assertAttributeGroupAsExpected(AttributeGroupInterface $expected, Group $actual)
     {
         $objectManager = ObjectManager::getInstance();
         /** @var AttributeRepositoryInterface $attributeGroupRepository */
         $attributeRepository = $objectManager->get(AttributeRepositoryInterface::class);
 
-        if ($expected->getName() !== null) {
-            self::assertSame($expected->getName(), $actual->getAttributeGroupName());
-        }
-
+        self::assertSame($expected->getName(), $actual->getAttributeGroupName());
         self::assertSame($expected->getAttributeGroupCode(), $actual->getAttributeGroupCode());
 
         if ($expected->getSortOrder() !== null) {
             self::assertSame($expected->getSortOrder(), $actual->getSortOrder());
         }
 
-        $expectedAttributeCodes = $expected->getAttributes();
-        if ($expectedAttributeCodes === null) {
-            if ($attributeSetIsNew) {
-                $expectedAttributeCodes = [];
-            } else {
-                return;
-            }
-        }
+        $expectedAttributeCodes = $expected->getAttributes() ?? [];
         $searchCriteria = $objectManager->create(SearchCriteriaBuilder::class)
             ->addFilter('attribute_set_id', $actual->getAttributeSetId())
             ->addFilter('attribute_group_id', $actual->getAttributeGroupId())
@@ -250,16 +246,26 @@ class CodedAttributeSetRepositoryTest extends \PHPUnit_Framework_TestCase
         self::assertSame($expectedAttributeCodes, $actualAttributeCodes);
     }
 
+    private static function removeAttributeSet(AttributeSetInterface $attributeSet)
+    {
+        $objectManager = ObjectManager::getInstance();
+        /** @var AttributeSetCodeRepository $attributeSetCodeRepository */
+        $attributeSetCodeRepository = $objectManager->get(AttributeSetCodeRepository::class);
+        /** @var AttributeSetRepositoryInterface $attributeSetRepository */
+        $attributeSetRepository = $objectManager->get(AttributeSetRepositoryInterface::class);
+
+        $entityTypeId = self::getEntityTypeId($attributeSet->getEntityTypeCode());
+        $attributeSetId = $attributeSetCodeRepository->getAttributeSetId($entityTypeId, $attributeSet->getAttributeSetCode());
+        if ($attributeSetId !== null) {
+            $attributeSetRepository->deleteById($attributeSetId);
+        }
+    }
+
     private static function getEntityTypeId(string $entityTypeCode): int
     {
         $objectManager = ObjectManager::getInstance();
         /** @var Type $entityType */
         $entityType = $objectManager->create(Type::class)->loadByCode($entityTypeCode);
         return $entityType->getEntityTypeId();
-    }
-
-    private static function removeAttributeSet(AttributeSetInterface $attributeSet)
-    {
-
     }
 }
