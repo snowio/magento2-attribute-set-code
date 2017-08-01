@@ -9,4 +9,6 @@
 
     <preference for="SnowIO\AttributeSetCode\Api\CodedAttributeSetRepositoryInterface" type="SnowIO\AttributeSetCode\Model\CodedAttributeSetRepository" />
     <preference for="SnowIO\AttributeSetCode\Api\CodedProductAttributeSetManagementInterface" type="SnowIO\AttributeSetCode\Model\CodedProductAttributeSetManagement" />
+    <preference for="SnowIO\AttributeSetCode\Api\Data\AttributeGroupInterface" type="SnowIO\AttributeSetCode\Model\AttributeGroup" />
+    <preference for="SnowIO\AttributeSetCode\Api\Data\AttributeSetInterface" type="SnowIO\AttributeSetCode\Model\AttributeSet" />
 </config>
