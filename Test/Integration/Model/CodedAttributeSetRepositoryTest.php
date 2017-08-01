@@ -44,8 +44,9 @@ class CodedAttributeSetRepositoryTest extends \PHPUnit_Framework_TestCase
         $attributeSetRepository = $objectManager->get(AttributeSetRepositoryInterface::class);
         /** @var AttributeSetCodeRepository $attributeSetCodeRepository */
         $attributeSetCodeRepository = $objectManager->get(AttributeSetCodeRepository::class);
-
-        $attributeSetId = $attributeSetCodeRepository->getAttributeSetId($expectedAttributeSet->getAttributeSetCode());
+        /** @var Type $expectedEntityType */
+        $expectedEntityType = $objectManager->create(Type::class)->loadByCode($expectedAttributeSet->getEntityTypeCode()); //todo added this to get the entity type id
+        $attributeSetId = $attributeSetCodeRepository->getAttributeSetId($expectedEntityType->getEntityTypeId(), $expectedAttributeSet->getAttributeSetCode());
         self::assertNotNull($attributeSetId);
         $actualAttributeSet = $attributeSetRepository->get($attributeSetId);
 
