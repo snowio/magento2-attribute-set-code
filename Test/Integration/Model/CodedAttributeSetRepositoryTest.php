@@ -17,7 +17,7 @@ use SnowIO\AttributeSetCode\Model\AttributeSetCodeRepository;
 
 class CodedAttributeSetRepositoryTest extends \PHPUnit_Framework_TestCase
 {
-    public function testCreateEmptyAttributeSet()
+    public function testCreateImplicitlyEmptyAttributeSet()
     {
         $objectManager = ObjectManager::getInstance();
         /** @var CodedAttributeSetRepositoryInterface $attributeSetRepository */
@@ -31,6 +31,27 @@ class CodedAttributeSetRepositoryTest extends \PHPUnit_Framework_TestCase
             ->setName('My Test Attribute Set 1')
             ->setSortOrder(50)
             ->setEntityTypeCode('catalog_product');
+
+        $attributeSetRepository->save($attributeSet);
+
+        self::assertAttributeSetCorrectInDb($attributeSet);
+    }
+
+    public function testCreateExplicitlyEmptyAttributeSet()
+    {
+        $objectManager = ObjectManager::getInstance();
+        /** @var CodedAttributeSetRepositoryInterface $attributeSetRepository */
+        $attributeSetRepository = $objectManager->get(CodedAttributeSetRepositoryInterface::class);
+        /** @var AttributeSetInterfaceFactory $attributeSetFactory */
+        $attributeSetFactory = $objectManager->get(AttributeSetInterfaceFactory::class);
+
+        /** @var AttributeSetInterface $attributeSet */
+        $attributeSet = $attributeSetFactory->create()
+            ->setAttributeSetCode('my-test-attribute-set-1')
+            ->setName('My Test Attribute Set 1')
+            ->setSortOrder(50)
+            ->setEntityTypeCode('catalog_product')
+            ->setAttributeGroups([]);
 
         $attributeSetRepository->save($attributeSet);
 
@@ -92,10 +113,14 @@ class CodedAttributeSetRepositoryTest extends \PHPUnit_Framework_TestCase
             $actualGroupsByCode[$actualAttributeGroup->getAttributeGroupCode()] = $actualAttributeGroup;
         }
 
-        self::assertSameSize($expectedGroupsByCode, $actualGroupsByCode);
+        self::assertSameSize(
+            $expectedGroupsByCode,
+            $actualGroupsByCode,
+            \sprintf('Attribute set should have %s groups but actually has %s groups.', \count($expectedGroups), \count($actualGroupsByCode))
+        );
 
         foreach ($expectedGroupsByCode as $groupCode => $expectedGroup) {
-            self::assertArrayHasKey($groupCode, $actualGroupsByCode);
+            self::assertArrayHasKey($groupCode, $actualGroupsByCode, "Attribute set is missing group $groupCode."));
             self::assertAttributeGroupAsExpected($expectedGroup, $actualGroupsByCode[$groupCode]);
         }
     }
