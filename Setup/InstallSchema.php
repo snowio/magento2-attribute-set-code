@@ -21,7 +21,8 @@ class InstallSchema implements InstallSchemaInterface
                 null,
                 ['unsigned' => true, 'nullable' => false, 'primary' => true],
                 'Attribute Set Id'
-            )->addColumn(
+            )
+            ->addColumn(
                 'attribute_set_code',
                 Table::TYPE_TEXT,
                 255,

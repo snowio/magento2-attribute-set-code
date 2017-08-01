@@ -58,7 +58,7 @@ class CodedAttributeSetRepositoryTest extends \PHPUnit_Framework_TestCase
         $objectManager = ObjectManager::getInstance();
 
         /** @var Type $expectedEntityType */
-        $expectedEntityType = $objectManager->create(Type::class)->loadByCode($expected->getEntityType());
+        $expectedEntityType = $objectManager->create(Type::class)->loadByCode($expected->getEntityTypeCode());
         self::assertSame($expectedEntityType->getEntityTypeId(), $actual->getEntityTypeId());
 
         if ($expected->getName() !== null) {

@@ -7,20 +7,20 @@ interface AttributeSetInterface
     const NAME = 'name';
     const SORT_ORDER = 'sort_order';
     const ATTRIBUTE_GROUPS = ' attribute_groups';
-    const ENTITY_TYPE = 'entity_type';
+    const ENTITY_TYPE_CODE = 'entity_type_code';
 
     /**
-     * @return string
+     * @return null|string
      */
     public function getAttributeSetCode();
 
     /**
-     * @return string
+     * @return null|string
      */
     public function getName();
 
     /**
-     * @return int
+     * @return null|int
      */
     public function getSortOrder();
 
@@ -30,7 +30,7 @@ interface AttributeSetInterface
     public function getAttributeGroups();
 
     /**
-     * @return int
+     * @return null|string
      */
-    public function getEntityType();
+    public function getEntityTypeCode();
 }

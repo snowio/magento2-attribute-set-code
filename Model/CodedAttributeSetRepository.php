@@ -28,6 +28,7 @@ class CodedAttributeSetRepository implements CodedAttributeSetRepositoryInterfac
     private $searchCriteriaBuilder;
     private $attributeRepository;
     private $resourceConnection;
+    private $entityTypeCodeRepository;
 
     public function __construct(
         AttributeGroupCodeRepository $attributeGroupCodeRepository,
@@ -39,7 +40,8 @@ class CodedAttributeSetRepository implements CodedAttributeSetRepositoryInterfac
         AttributeManagementInterface $attributeManagement,
         SearchCriteriaBuilder $searchCriteriaBuilder,
         AttributeRepositoryInterface  $attributeRepository,
-        ResourceConnection $resourceConnection
+        ResourceConnection $resourceConnection,
+        EntityTypeCodeRepository $entityTypeCodeRepository
     ) {
         $this->attributeGroupCodeRepository = $attributeGroupCodeRepository;
         $this->attributeSetCodeRepository = $attributeSetCodeRepository;
@@ -51,6 +53,7 @@ class CodedAttributeSetRepository implements CodedAttributeSetRepositoryInterfac
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
         $this->attributeRepository = $attributeRepository;
         $this->resourceConnection = $resourceConnection;
+        $this->entityTypeCodeRepository = $entityTypeCodeRepository;
     }
 
     public function save(AttributeSetInterface $attributeSet)
@@ -59,7 +62,8 @@ class CodedAttributeSetRepository implements CodedAttributeSetRepositoryInterfac
         $connection->beginTransaction();
         try {
             $attributeSetCode = $attributeSet->getAttributeSetCode();
-            $attributeSetId = $this->attributeSetCodeRepository->getAttributeSetId($attributeSetCode);
+            $entityTypeId = $this->entityTypeCodeRepository->getEntityTypeId($attributeSet->getEntityTypeCode()); // todo: really get entity type id
+            $attributeSetId = $this->attributeSetCodeRepository->getAttributeSetId($entityTypeId, $attributeSetCode);
 
             if (null === $attributeSetId) {
                 $attributeSetId = $this->createAttributeSet($attributeSet, 11);
@@ -95,12 +99,12 @@ class CodedAttributeSetRepository implements CodedAttributeSetRepositoryInterfac
                 if ($attributeGroupId === null) {
                     $attributeGroupId = $this->createAttributeGroup($attributeSetId, $inputAttributeGroup);
                 } else {
-                    $attributesInGroup = $this->getAttributes($attributeSet->getEntityType(), $attributeGroupId);
+                    $attributesInGroup = $this->getAttributes($entityTypeId, $attributeGroupId);
 
                     $this->removeAttributesFromGroup($attributeGroupId, array_diff($attributesInGroup, $inputAttributeGroup->getAttributes()));
                 }
 
-                $this->assignAttributesInGroup($inputAttributeGroup, $attributeSet->getEntityType(), $attributeSetId,
+                $this->assignAttributesInGroup($inputAttributeGroup, $entityTypeId, $attributeSetId,
                     $attributeGroupId);
             }
 
@@ -139,12 +143,12 @@ class CodedAttributeSetRepository implements CodedAttributeSetRepositoryInterfac
         $attributeSetCode = $attributeSet->getAttributeSetCode();
         $_attributeSet = $this->attributeSetFactory->create()
             ->setId(null)
-            ->setEntityTypeId($attributeSet->getEntityType())
+            ->setEntityTypeId($attributeSet->getEntityTypeCode())
             ->setAttributeSetName($attributeSet->getName())
             ->setSortOrder($attributeSet->getSortOrder());
 
         $_attributeSet = $this->attributeSetManagement->create($_attributeSet, $skeletonId);
-        $this->attributeSetCodeRepository->setAttributeSetId($_attributeSet->getAttributeSetId(), $attributeSetCode);
+        $this->attributeSetCodeRepository->setAttributeSetCode($_attributeSet->getAttributeSetId(), $attributeSetCode);
         return $_attributeSet->getAttributeSetId();
     }
 

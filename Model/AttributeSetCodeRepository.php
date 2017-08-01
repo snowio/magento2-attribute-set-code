@@ -15,17 +15,19 @@ class AttributeSetCodeRepository
         $this->dbConnection = $dbContext->getResources()->getConnection($connectionName);
     }
 
-    public function getAttributeSetId($attributeSetCode)
+    public function getAttributeSetId(int $entityTypeId, string $attributeSetCode)
     {
         $select = $this->dbConnection->select()
-            ->from(['t' => $this->getAttributeSetCodeTableName()], 'attribute_set_id')
-            ->where('t.attribute_set_code = ?', $attributeSetCode);
+            ->from(['c' => $this->getAttributeSetCodeTableName()], 'attribute_set_id')
+            ->join(['a' => $this->getAttributeTableName()], 'a.attribute_set_id=c.attribute_set_id', [])
+            ->where('c.attribute_set_code = ?', $attributeSetCode)
+            ->where('a.entity_type_id = ?', $entityTypeId);
 
         $result = $this->dbConnection->fetchOne($select);
         return $result ? (int) $result : null;
     }
 
-    public function getAttributeSetCode($attributeSetId)
+    public function getAttributeSetCode(int $attributeSetId)
     {
         $select = $this->dbConnection->select()
             ->from(['t' => $this->getAttributeSetCodeTableName()], 'attribute_set_code')
@@ -35,14 +37,7 @@ class AttributeSetCodeRepository
         return $result ? $result : null;
     }
 
-    public function removeAttributeSet($attributeSetCode)
-    {
-        $this->dbConnection->delete($this->getAttributeSetCodeTableName(), [
-            'attribute_set_code' => $attributeSetCode
-        ]);
-    }
-
-    public function setAttributeSetId($attributeSetId, $attributeSetCode)
+    public function setAttributeSetCode(int $attributeSetId, string $attributeSetCode)
     {
         $this->dbConnection->insert($this->getAttributeSetCodeTableName(),[
             'attribute_set_id' => $attributeSetId,
@@ -50,9 +45,13 @@ class AttributeSetCodeRepository
         ]);
     }
 
-
     private function getAttributeSetCodeTableName()
     {
         return $this->dbConnection->getTableName('attribute_set_code');
+    }
+
+    private function getAttributeTableName()
+    {
+        return $this->dbConnection->getTableName('eav_attribute');
     }
 }
