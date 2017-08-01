@@ -178,10 +178,10 @@ class CodedAttributeSetRepositoryTest extends \PHPUnit_Framework_TestCase
         self::assertEquals($expectedEntityTypeId, $actual->getEntityTypeId());
         self::assertSame($expected->getName(), $actual->getAttributeSetName());
         $expectedAttributeGroups = $expected->getAttributeGroups() ?? [];
-        self::assertAttributeGroupsAsExpected($expectedAttributeGroups, $actual->getAttributeSetId());
+        self::assertAttributeGroupsAsExpected($expected->getEntityTypeCode(), $expectedAttributeGroups, $actual->getAttributeSetId());
     }
 
-    private static function assertAttributeGroupsAsExpected(array $expectedGroups, string $actualAttributeSetId)
+    private static function assertAttributeGroupsAsExpected(string $entityTypeCode, array $expectedGroups, string $actualAttributeSetId)
     {
         $objectManager = ObjectManager::getInstance();
         /** @var AttributeGroupRepositoryInterface $attributeGroupRepository */
@@ -210,11 +210,11 @@ class CodedAttributeSetRepositoryTest extends \PHPUnit_Framework_TestCase
 
         foreach ($expectedGroupsByCode as $groupCode => $expectedGroup) {
             self::assertArrayHasKey($groupCode, $actualGroupsByCode, "Attribute set is missing group $groupCode.");
-            self::assertAttributeGroupAsExpected($expectedGroup, $actualGroupsByCode[$groupCode]);
+            self::assertAttributeGroupAsExpected($entityTypeCode, $expectedGroup, $actualGroupsByCode[$groupCode]);
         }
     }
 
-    private static function assertAttributeGroupAsExpected(AttributeGroupInterface $expected, Group $actual)
+    private static function assertAttributeGroupAsExpected(string $entityTypeCode, AttributeGroupInterface $expected, Group $actual)
     {
         $objectManager = ObjectManager::getInstance();
         /** @var AttributeRepositoryInterface $attributeGroupRepository */
@@ -232,7 +232,7 @@ class CodedAttributeSetRepositoryTest extends \PHPUnit_Framework_TestCase
             ->addFilter('attribute_set_id', $actual->getAttributeSetId())
             ->addFilter('attribute_group_id', $actual->getAttributeGroupId())
             ->create();
-        $actualAttributes = $attributeRepository->getList($searchCriteria)->getItems();
+        $actualAttributes = $attributeRepository->getList($entityTypeCode, $searchCriteria)->getItems();
         self::assertSameSize($expected->getAttributes(), $actualAttributes);
         $actualAttributeCodes = \array_map(function (AttributeInterface $attribute) {
             return $attribute->getAttributeCode();
