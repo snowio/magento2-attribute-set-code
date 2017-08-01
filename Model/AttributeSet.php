@@ -10,7 +10,7 @@ class AttributeSet extends DataObject implements AttributeSetInterface
 
     public function getAttributeSetCode()
     {
-        return $this->getData(AttributeSetInterface::CODE);
+        return $this->getData(AttributeSetInterface::ATTRIBUTE_SET_CODE);
     }
 
     public function getName()
@@ -35,7 +35,7 @@ class AttributeSet extends DataObject implements AttributeSetInterface
 
     public function setAttributeSetCode($code)
     {
-        return $this->setData(AttributeSetInterface::CODE, $code);
+        return $this->setData(AttributeSetInterface::ATTRIBUTE_SET_CODE, $code);
     }
 
     public function setName($name)
