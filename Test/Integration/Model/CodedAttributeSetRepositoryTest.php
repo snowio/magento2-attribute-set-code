@@ -189,14 +189,9 @@ class CodedAttributeSetRepositoryTest extends \PHPUnit_Framework_TestCase
 
     private function saveNewAttributeSetAndCheckDb(AttributeSetInterface $attributeSet)
     {
-        $this->saveNewAttributeSet($attributeSet);
-        self::assertAttributeSetCorrectInDb($attributeSet);
-    }
-
-    private function saveNewAttributeSet(AttributeSetInterface $attributeSet)
-    {
         self::removeAttributeSet($attributeSet);
         self::saveAttributeSet($attributeSet);
+        self::assertAttributeSetCorrectInDb($attributeSet);
     }
 
     private function saveAttributeSet(AttributeSetInterface $attributeSet)
