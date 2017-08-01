@@ -74,7 +74,7 @@ class CodedAttributeSetRepository implements CodedAttributeSetRepositoryInterfac
 
             foreach ($inputAttributeGroups as $inputAttributeGroup) {
                 $attributeGroupCode = $inputAttributeGroup->getAttributeGroupCode();
-                $inputAttributeGroup[] = [
+                $inputAttributeGroupCodeToIdMap[] = [
                     'id' =>  $this->attributeGroupCodeRepository->getAttributeGroupId($attributeGroupCode,
                         $attributeSetId),
                     'group' => $inputAttributeGroup
