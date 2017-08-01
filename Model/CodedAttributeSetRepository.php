@@ -171,10 +171,11 @@ class CodedAttributeSetRepository implements CodedAttributeSetRepositoryInterfac
         $searchCriteria = $this->searchCriteriaBuilder
             ->addFilter(\Magento\Eav\Api\Data\AttributeGroupInterface::GROUP_ID, $groupId)
             ->create();
+        $entityTypeCode = $this->entityTypeCodeRepository->getEntityTypeCode($entityTypeId);
 
         return array_map(function (AttributeInterface $attribute) {
             return $attribute->getAttributeCode();
-        },$this->attributeRepository->getList($entityTypeId, $searchCriteria)->getItems());
+        },$this->attributeRepository->getList($entityTypeCode, $searchCriteria)->getItems());
     }
 
 
