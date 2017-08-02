@@ -189,14 +189,9 @@ class CodedAttributeSetRepositoryTest extends \PHPUnit_Framework_TestCase
 
     private function saveNewAttributeSetAndCheckDb(AttributeSetInterface $attributeSet)
     {
-        $this->saveNewAttributeSet($attributeSet);
-        self::assertAttributeSetCorrectInDb($attributeSet);
-    }
-
-    private function saveNewAttributeSet(AttributeSetInterface $attributeSet)
-    {
         self::removeAttributeSet($attributeSet);
         self::saveAttributeSet($attributeSet);
+        self::assertAttributeSetCorrectInDb($attributeSet);
     }
 
     private function saveAttributeSet(AttributeSetInterface $attributeSet)
@@ -207,19 +202,19 @@ class CodedAttributeSetRepositoryTest extends \PHPUnit_Framework_TestCase
         $attributeSetRepository->save($attributeSet);
     }
 
-    private static function assertAttributeSetCorrectInDb(AttributeSetInterface $expectedAttributeSet)
+    private static function assertAttributeSetCorrectInDb(AttributeSetInterface $expected)
     {
         $objectManager = ObjectManager::getInstance();
         /** @var AttributeSetRepositoryInterface $attributeSetRepository */
         $attributeSetRepository = $objectManager->get(AttributeSetRepositoryInterface::class);
         /** @var AttributeSetCodeRepository $attributeSetCodeRepository */
         $attributeSetCodeRepository = $objectManager->get(AttributeSetCodeRepository::class);
-        $expectedEntityTypeId = self::getEntityTypeId($expectedAttributeSet->getEntityTypeCode());
-        $attributeSetId = $attributeSetCodeRepository->getAttributeSetId($expectedEntityTypeId, $expectedAttributeSet->getAttributeSetCode());
-        self::assertNotNull($attributeSetId);
-        $actualAttributeSet = $attributeSetRepository->get($attributeSetId);
+        $entityTypeId = self::getEntityTypeId($expected->getEntityTypeCode());
+        $attributeSetId = $attributeSetCodeRepository->getAttributeSetId($entityTypeId, $expected->getAttributeSetCode());
+        self::assertNotNull($attributeSetId, \sprintf("The attribute set %s:%s does not exist.", $expected->getEntityTypeCode(), $expected->getAttributeSetCode()));
+        $actual = $attributeSetRepository->get($attributeSetId);
 
-        self::assertAttributeSetAsExpected($expectedAttributeSet, $actualAttributeSet);
+        self::assertAttributeSetAsExpected($expected, $actual);
     }
 
     private static function assertAttributeSetAsExpected(AttributeSetInterface $expected, \Magento\Eav\Api\Data\AttributeSetInterface $actual)
