@@ -87,7 +87,7 @@ class CodedAttributeSetRepository implements CodedAttributeSetRepositoryInterfac
                 ];
             }
 
-            if ($inputAttributeGroups === [] || $inputAttributeGroups === null) {
+            if ($inputAttributeGroups !== [] || $inputAttributeGroups !== null) {
                 //input attribute group code is a map that contains attribute group code -> attribute group id
                 $existingAttributeGroupIds = $this->attributeGroupCodeRepository->getAttributeGroupIds($attributeSetCode) ?? [];
                 $inputAttributeGroupIds = array_filter(array_column(array_values($inputAttributeGroupCodeToIdMap),
