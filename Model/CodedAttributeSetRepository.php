@@ -3,6 +3,7 @@
 namespace SnowIO\AttributeSetCode\Model;
 
 use Magento\Catalog\Api\AttributeSetManagementInterface;
+use Magento\Catalog\Api\AttributeSetRepositoryInterface;
 use Magento\Eav\Api\AttributeGroupRepositoryInterface;
 use Magento\Eav\Api\AttributeManagementInterface;
 use Magento\Eav\Api\AttributeRepositoryInterface;
@@ -29,6 +30,7 @@ class CodedAttributeSetRepository implements CodedAttributeSetRepositoryInterfac
     private $attributeRepository;
     private $resourceConnection;
     private $entityTypeCodeRepository;
+    private $attributeSetRepository;
 
     public function __construct(
         AttributeGroupCodeRepository $attributeGroupCodeRepository,
@@ -38,6 +40,7 @@ class CodedAttributeSetRepository implements CodedAttributeSetRepositoryInterfac
         AttributeSetInterfaceFactory $attributeSetFactory,
         AttributeGroupInterfaceFactory $attributeGroupFactory,
         AttributeManagementInterface $attributeManagement,
+        AttributeSetRepositoryInterface $attributeSetRepository,
         SearchCriteriaBuilder $searchCriteriaBuilder,
         AttributeRepositoryInterface  $attributeRepository,
         ResourceConnection $resourceConnection,
@@ -49,6 +52,7 @@ class CodedAttributeSetRepository implements CodedAttributeSetRepositoryInterfac
         $this->attributeSetManagement = $attributeSetManagement;
         $this->attributeSetFactory = $attributeSetFactory;
         $this->attributeGroupFactory = $attributeGroupFactory;
+        $this->attributeSetRepository = $attributeSetRepository;
         $this->attributeManagement = $attributeManagement;
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
         $this->attributeRepository = $attributeRepository;
@@ -68,6 +72,8 @@ class CodedAttributeSetRepository implements CodedAttributeSetRepositoryInterfac
 
             if (null === $attributeSetId) {
                 $attributeSetId = $this->createAttributeSet($attributeSet, $entityTypeId, $skeletonId = $defaultAttributeSetId);
+            } else {
+                $attributeSetId = $this->updateAttributeSet($attributeSet, $attributeSetId, $entityTypeId);
             }
 
             $inputAttributeGroups = $attributeSet->getAttributeGroups() ?? [];
@@ -181,5 +187,16 @@ class CodedAttributeSetRepository implements CodedAttributeSetRepositoryInterfac
         foreach ($attributesToRemove as $attributeToRemove) {
             $this->attributeManagement->unassign($attributeSetId, $attributeToRemove);
         }
+    }
+
+    private function updateAttributeSet(AttributeSetInterface $attributeSet,int $attributeSetId, int $entityTypeId)
+    {
+        $attributeSetCode = $attributeSet->getAttributeSetCode();
+        $_attributeSet = $this->attributeSetFactory->create()
+            ->setId($attributeSetId)
+            ->setEntityTypeId($entityTypeId)
+            ->setAttributeSetName($attributeSet->getName())
+            ->setSortOrder($attributeSet->getSortOrder());
+        $this->attributeSetRepository->save($attributeSet);
     }
 }
