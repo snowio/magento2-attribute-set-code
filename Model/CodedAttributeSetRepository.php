@@ -108,7 +108,7 @@ class CodedAttributeSetRepository implements CodedAttributeSetRepositoryInterfac
                     } else {
                         $attributesInGroup = $this->getAttributes($attributeGroupId, $entityTypeId);
                         if ($attributesInGroup !== null) {
-                            $this->removeAttributesFromGroup($attributeGroupId,
+                            $this->removeAttributesFromSet($attributeSetId,
                                 array_diff($attributesInGroup, $inputAttributeGroup->getAttributes()));
                         }
                     }
@@ -183,14 +183,13 @@ class CodedAttributeSetRepository implements CodedAttributeSetRepositoryInterfac
             ->addFilter(\Magento\Eav\Api\Data\AttributeGroupInterface::GROUP_ID, $groupId)
             ->create();
         $entityTypeCode = $this->entityTypeCodeRepository->getEntityTypeCode($entityTypeId);
-
         return array_map(function (AttributeInterface $attribute) {
             return $attribute->getAttributeCode();
         },$this->attributeRepository->getList($entityTypeCode, $searchCriteria)->getItems());
     }
 
 
-    private function removeAttributesFromGroup(int $attributeSetId, array $attributesToRemove)
+    private function removeAttributesFromSet(int $attributeSetId, array $attributesToRemove)
     {
         foreach ($attributesToRemove as $attributeToRemove) {
             $this->attributeManagement->unassign($attributeSetId, $attributeToRemove);
