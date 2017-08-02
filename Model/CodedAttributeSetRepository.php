@@ -66,7 +66,7 @@ class CodedAttributeSetRepository implements CodedAttributeSetRepositoryInterfac
         $connection->beginTransaction();
         try {
             $attributeSetCode = $attributeSet->getAttributeSetCode();
-            $entityTypeId = $this->entityTypeCodeRepository->getEntityTypeId($attributeSet->getEntityTypeCode()); // todo: really get entity type id
+            $entityTypeId = $this->entityTypeCodeRepository->getEntityTypeId($attributeSet->getEntityTypeCode());
             $attributeSetId = $this->attributeSetCodeRepository->getAttributeSetId($entityTypeId, $attributeSetCode);
 
             if (null === $attributeSetId) {
