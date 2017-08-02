@@ -8,6 +8,7 @@ use Magento\Eav\Api\Data\AttributeInterface;
 use Magento\Eav\Model\Entity\Attribute\Group;
 use Magento\Eav\Model\Entity\Type;
 use Magento\Framework\Api\SearchCriteriaBuilder;
+use Magento\Framework\Api\SortOrder;
 use Magento\Framework\App\ObjectManager;
 use SnowIO\AttributeSetCode\Api\CodedAttributeSetRepositoryInterface;
 use SnowIO\AttributeSetCode\Api\Data\AttributeGroupInterface;
@@ -276,6 +277,7 @@ class CodedAttributeSetRepositoryTest extends \PHPUnit_Framework_TestCase
         $searchCriteria = $objectManager->create(SearchCriteriaBuilder::class)
             ->addFilter('attribute_set_id', $actual->getAttributeSetId())
             ->addFilter('attribute_group_id', $actual->getAttributeGroupId())
+            ->addSortOrder((new SortOrder())->setField('sort_order')->setDirection(SortOrder::SORT_ASC))
             ->create();
         $actualAttributes = $attributeRepository->getList($entityTypeCode, $searchCriteria)->getItems();
         self::assertSameSize($expectedAttributeCodes, $actualAttributes);
