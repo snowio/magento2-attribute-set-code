@@ -96,9 +96,7 @@ class CodedAttributeSetRepository implements CodedAttributeSetRepositoryInterfac
 
                 //input attribute group code is a map that contains attribute group code -> attribute group id
                 $existingAttributeGroupIds = $this->attributeGroupCodeRepository->getAttributeGroupIds($attributeSetCode) ?? [];
-                $attributeGroupIdsToRemove = array_diff($existingAttributeGroupIds,
-                    $inputAttributeGroupIdsThatAlreadyExist);
-
+                $attributeGroupIdsToRemove = array_diff($existingAttributeGroupIds, $inputAttributeGroupIdsThatAlreadyExist);
                 $this->removeAttributeGroups($attributeGroupIdsToRemove);
 
                 foreach ($inputAttributeGroupCodeToIdMap as $attributeGroupCode => $attributeGroupData) {
