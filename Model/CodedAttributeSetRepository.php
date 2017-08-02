@@ -73,7 +73,7 @@ class CodedAttributeSetRepository implements CodedAttributeSetRepositoryInterfac
             if (null === $attributeSetId) {
                 $attributeSetId = $this->createAttributeSet($attributeSet, $entityTypeId, $skeletonId = $defaultAttributeSetId);
             } else {
-                $attributeSetId = $this->updateAttributeSet($attributeSet, $attributeSetId, $entityTypeId);
+                $this->updateAttributeSet($attributeSet, $attributeSetId, $entityTypeId);
             }
 
             $inputAttributeGroups = $attributeSet->getAttributeGroups() ?? [];
@@ -196,6 +196,6 @@ class CodedAttributeSetRepository implements CodedAttributeSetRepositoryInterfac
             ->setEntityTypeId($entityTypeId)
             ->setAttributeSetName($attributeSet->getName())
             ->setSortOrder($attributeSet->getSortOrder());
-        return $this->attributeSetRepository->save($_attributeSet)->getAttributeSetId();
+        $this->attributeSetRepository->save($_attributeSet)->getAttributeSetId();
     }
 }
