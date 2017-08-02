@@ -80,22 +80,20 @@ class CodedAttributeSetRepository implements CodedAttributeSetRepositoryInterfac
 
             foreach ($inputAttributeGroups as $inputAttributeGroup) {
                 $attributeGroupCode = $inputAttributeGroup->getAttributeGroupCode();
-                $inputAttributeGroupCodeToIdMap[] = [
+                $inputAttributeGroupCodeToIdMap[$attributeGroupCode] = [
                     'id' =>  $this->attributeGroupCodeRepository->getAttributeGroupId($attributeGroupCode,
                         $attributeSetId),
                     'group' => $inputAttributeGroup
                 ];
             }
 
-            if ($inputAttributeGroups !== [] || $inputAttributeGroups !== null) {
-                //input attribute group code is a map that contains attribute group code -> attribute group id
-                $existingAttributeGroupIds = $this->attributeGroupCodeRepository->getAttributeGroupIds($attributeSetCode) ?? [];
-                $inputAttributeGroupIds = array_filter(array_column(array_values($inputAttributeGroupCodeToIdMap),
-                    'id'));
-                $attributeGroupIdsToRemove = array_diff($existingAttributeGroupIds, $inputAttributeGroupIds);
+            //input attribute group code is a map that contains attribute group code -> attribute group id
+            $existingAttributeGroupIds = $this->attributeGroupCodeRepository->getAttributeGroupIds($attributeSetCode) ?? [];
+            $inputAttributeGroupIds = array_filter(array_column(array_values($inputAttributeGroupCodeToIdMap),
+                'id'));
+            $attributeGroupIdsToRemove = array_diff($existingAttributeGroupIds, $inputAttributeGroupIds);
 
-                $this->removeAttributeGroups($attributeGroupIdsToRemove);
-            }
+            $this->removeAttributeGroups($attributeGroupIdsToRemove);
 
             foreach ($inputAttributeGroupCodeToIdMap as $attributeGroupCode => $attributeGroupData) {
                 $attributeGroupId = $attributeGroupData['id'];
