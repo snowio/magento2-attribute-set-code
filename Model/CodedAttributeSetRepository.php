@@ -189,14 +189,13 @@ class CodedAttributeSetRepository implements CodedAttributeSetRepositoryInterfac
         }
     }
 
-    private function updateAttributeSet(AttributeSetInterface $attributeSet,int $attributeSetId, int $entityTypeId)
+    private function updateAttributeSet(AttributeSetInterface $attributeSet, int $attributeSetId, int $entityTypeId)
     {
-        $attributeSetCode = $attributeSet->getAttributeSetCode();
         $_attributeSet = $this->attributeSetFactory->create()
             ->setId($attributeSetId)
             ->setEntityTypeId($entityTypeId)
             ->setAttributeSetName($attributeSet->getName())
             ->setSortOrder($attributeSet->getSortOrder());
-        $this->attributeSetRepository->save($attributeSet);
+        return $this->attributeSetRepository->save($_attributeSet)->getAttributeSetId();
     }
 }
