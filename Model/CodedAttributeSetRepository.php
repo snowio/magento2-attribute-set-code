@@ -63,10 +63,11 @@ class CodedAttributeSetRepository implements CodedAttributeSetRepositoryInterfac
         try {
             $attributeSetCode = $attributeSet->getAttributeSetCode();
             $entityTypeId = $this->entityTypeCodeRepository->getEntityTypeId($attributeSet->getEntityTypeCode()); // todo: really get entity type id
+            $defaultAttributeSetId = $this->entityTypeCodeRepository->getDefaultAttributeSetId($attributeSet->getEntityTypeCode()); // todo: really get entity type id
             $attributeSetId = $this->attributeSetCodeRepository->getAttributeSetId($entityTypeId, $attributeSetCode);
 
             if (null === $attributeSetId) {
-                $attributeSetId = $this->createAttributeSet($attributeSet, $entityTypeId, $skeletonId = 4);
+                $attributeSetId = $this->createAttributeSet($attributeSet, $entityTypeId, $skeletonId = $defaultAttributeSetId);
             }
 
             $inputAttributeGroups = $attributeSet->getAttributeGroups() ?? [];

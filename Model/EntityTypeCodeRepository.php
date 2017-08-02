@@ -21,4 +21,9 @@ class EntityTypeCodeRepository
     {
         return $this->entityTypeFactory->create()->load($entityTypeId)->getEntityTypeCode();
     }
+
+    public function getDefaultAttributeSetId(string $code)
+    {
+        return $this->entityTypeFactory->create()->loadByCode($code)->getDefaultAttributeSetId();
+    }
 }
