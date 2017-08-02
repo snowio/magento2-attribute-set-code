@@ -75,41 +75,44 @@ class CodedAttributeSetRepository implements CodedAttributeSetRepositoryInterfac
                 $this->updateAttributeSet($attributeSet, $attributeSetId, $entityTypeId);
             }
 
-            $inputAttributeGroups = $attributeSet->getAttributeGroups() ?? [];
-            $inputAttributeGroupCodeToIdMap = [];
+            if (($inputAttributeGroups = $attributeSet->getAttributeGroups()) !== null) {
+                $inputAttributeGroupCodeToIdMap = [];
 
-            foreach ($inputAttributeGroups as $inputAttributeGroup) {
-                $attributeGroupCode = $inputAttributeGroup->getAttributeGroupCode();
-                $inputAttributeGroupCodeToIdMap[] = [
-                    'id' =>  $this->attributeGroupCodeRepository->getAttributeGroupId($attributeGroupCode,
-                        $attributeSetId),
-                    'group' => $inputAttributeGroup
-                ];
-            }
-
-            //input attribute group code is a map that contains attribute group code -> attribute group id
-            $existingAttributeGroupIds = $this->attributeGroupCodeRepository->getAttributeGroupIds($attributeSetCode) ?? [];
-            $inputAttributeGroupIds = array_filter(array_column(array_values($inputAttributeGroupCodeToIdMap), 'id'));
-            $attributeGroupIdsToRemove = array_diff($existingAttributeGroupIds, $inputAttributeGroupIds);
-
-            $this->removeAttributeGroups($attributeGroupIdsToRemove);
-
-            foreach ($inputAttributeGroupCodeToIdMap as $attributeGroupCode => $attributeGroupData) {
-                $attributeGroupId = $attributeGroupData['id'];
-                /** @var AttributeGroupInterface $inputAttributeGroup */
-                $inputAttributeGroup = $attributeGroupData['group'];
-                if ($attributeGroupId === null) {
-                    $attributeGroupId = $this->createAttributeGroup($attributeSetId, $inputAttributeGroup);
-                } else {
-                    $attributesInGroup = $this->getAttributes($entityTypeId, $attributeGroupId);
-
-                    $this->removeAttributesFromGroup($attributeGroupId, array_diff($attributesInGroup, $inputAttributeGroup->getAttributes()));
+                foreach ($inputAttributeGroups as $inputAttributeGroup) {
+                    $attributeGroupCode = $inputAttributeGroup->getAttributeGroupCode();
+                    $inputAttributeGroupCodeToIdMap[] = [
+                        'id' => $this->attributeGroupCodeRepository->getAttributeGroupId($attributeGroupCode,
+                            $attributeSetId),
+                        'group' => $inputAttributeGroup
+                    ];
                 }
 
-                $this->assignAttributesInGroup($inputAttributeGroup, $attributeSet->getEntityTypeCode(), $attributeSetId,
-                    $attributeGroupId);
-            }
+                //input attribute group code is a map that contains attribute group code -> attribute group id
+                $existingAttributeGroupIds = $this->attributeGroupCodeRepository->getAttributeGroupIds($attributeSetCode) ?? [];
+                $inputAttributeGroupIds = array_filter(array_column(array_values($inputAttributeGroupCodeToIdMap),
+                    'id'));
+                $attributeGroupIdsToRemove = array_diff($existingAttributeGroupIds, $inputAttributeGroupIds);
 
+                $this->removeAttributeGroups($attributeGroupIdsToRemove);
+
+                foreach ($inputAttributeGroupCodeToIdMap as $attributeGroupCode => $attributeGroupData) {
+                    $attributeGroupId = $attributeGroupData['id'];
+                    /** @var AttributeGroupInterface $inputAttributeGroup */
+                    $inputAttributeGroup = $attributeGroupData['group'];
+                    if ($attributeGroupId === null) {
+                        $attributeGroupId = $this->createAttributeGroup($attributeSetId, $inputAttributeGroup);
+                    } else {
+                        $attributesInGroup = $this->getAttributes($entityTypeId, $attributeGroupId);
+
+                        $this->removeAttributesFromGroup($attributeGroupId,
+                            array_diff($attributesInGroup, $inputAttributeGroup->getAttributes()));
+                    }
+
+                    $this->assignAttributesInGroup($inputAttributeGroup, $attributeSet->getEntityTypeCode(),
+                        $attributeSetId,
+                        $attributeGroupId);
+                }
+            }
             $connection->commit();
             return $attributeSet;
         } catch (\Throwable $e) {
@@ -195,6 +198,6 @@ class CodedAttributeSetRepository implements CodedAttributeSetRepositoryInterfac
             ->setEntityTypeId($entityTypeId)
             ->setAttributeSetName($attributeSet->getName())
             ->setSortOrder($attributeSet->getSortOrder());
-        $this->attributeSetRepository->save($_attributeSet)->getAttributeSetId();
+        $this->attributeSetRepository->save($_attributeSet);
     }
 }
