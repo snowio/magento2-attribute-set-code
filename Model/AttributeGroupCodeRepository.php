@@ -44,7 +44,7 @@ class AttributeGroupCodeRepository
             ->where('a.attribute_set_code = ?', $attributeSetCode);
 
         $result = $this->dbConnection->fetchAll($select);
-        return $result ? $result : null;
+        return $result ? array_column($result, 'attribute_group_id') : null;
     }
 
     public function getAttributeGroupCodes($attributeSetCodes)
