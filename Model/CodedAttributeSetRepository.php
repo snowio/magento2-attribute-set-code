@@ -2,8 +2,8 @@
 
 namespace SnowIO\AttributeSetCode\Model;
 
-use Magento\Catalog\Api\AttributeSetManagementInterface;
-use Magento\Catalog\Api\AttributeSetRepositoryInterface;
+use Magento\Eav\Api\AttributeSetManagementInterface;
+use Magento\Eav\Api\AttributeSetRepositoryInterface;
 use Magento\Eav\Api\AttributeGroupRepositoryInterface;
 use Magento\Eav\Api\AttributeManagementInterface;
 use Magento\Eav\Api\AttributeRepositoryInterface;
@@ -67,11 +67,10 @@ class CodedAttributeSetRepository implements CodedAttributeSetRepositoryInterfac
         try {
             $attributeSetCode = $attributeSet->getAttributeSetCode();
             $entityTypeId = $this->entityTypeCodeRepository->getEntityTypeId($attributeSet->getEntityTypeCode()); // todo: really get entity type id
-            $defaultAttributeSetId = $this->entityTypeCodeRepository->getDefaultAttributeSetId($attributeSet->getEntityTypeCode()); // todo: really get entity type id
             $attributeSetId = $this->attributeSetCodeRepository->getAttributeSetId($entityTypeId, $attributeSetCode);
 
             if (null === $attributeSetId) {
-                $attributeSetId = $this->createAttributeSet($attributeSet, $entityTypeId, $skeletonId = $defaultAttributeSetId);
+                $attributeSetId = $this->createAttributeSet($attributeSet, $entityTypeId);
             } else {
                 $this->updateAttributeSet($attributeSet, $attributeSetId, $entityTypeId);
             }
@@ -141,17 +140,17 @@ class CodedAttributeSetRepository implements CodedAttributeSetRepositoryInterfac
 
     private function createAttributeSet(
         AttributeSetInterface $attributeSet,
-        int $entityTypeId,
-        $skeletonId
+        int $entityTypeId
     ) : int {
         $attributeSetCode = $attributeSet->getAttributeSetCode();
+        $defaultAttributeSetId = $this->entityTypeCodeRepository->getDefaultAttributeSetId($attributeSet->getEntityTypeCode());
         $_attributeSet = $this->attributeSetFactory->create()
             ->setId(null)
             ->setEntityTypeId($entityTypeId)
             ->setAttributeSetName($attributeSet->getName())
             ->setSortOrder($attributeSet->getSortOrder());
 
-        $_attributeSet = $this->attributeSetManagement->create($_attributeSet, $skeletonId);
+        $_attributeSet = $this->attributeSetManagement->create($attributeSet->getEntityTypeCode(),$_attributeSet, $defaultAttributeSetId);
         $this->attributeSetCodeRepository->setAttributeSetCode($_attributeSet->getAttributeSetId(), $attributeSetCode);
         return $_attributeSet->getAttributeSetId();
     }
