@@ -3,7 +3,7 @@ namespace SnowIO\AttributeSetCode\Api\Data;
 
 interface AttributeGroupInterface
 {
-    const CODE = 'code';
+    const ATTRIBUTE_GROUP_CODE = 'attribute_group_code';
     const NAME = 'name';
     const SORT_ORDER = 'sort_order';
     const ATTRIBUTES = 'attributes';

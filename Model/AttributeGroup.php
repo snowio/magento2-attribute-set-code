@@ -10,7 +10,7 @@ class AttributeGroup extends DataObject implements AttributeGroupInterface
 
     public function getAttributeGroupCode()
     {
-        return $this->getData(AttributeGroupInterface::CODE);
+        return $this->getData(AttributeGroupInterface::ATTRIBUTE_GROUP_CODE);
     }
 
     public function getName()
@@ -30,7 +30,7 @@ class AttributeGroup extends DataObject implements AttributeGroupInterface
 
     public function setAttributeGroupCode($attributeGroupCode)
     {
-        return $this->setData(AttributeGroupInterface::CODE, $attributeGroupCode);
+        return $this->setData(AttributeGroupInterface::ATTRIBUTE_GROUP_CODE, $attributeGroupCode);
     }
 
     public function setName($name)
