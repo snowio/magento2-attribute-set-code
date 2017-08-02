@@ -66,7 +66,7 @@ class CodedAttributeSetRepository implements CodedAttributeSetRepositoryInterfac
             $attributeSetId = $this->attributeSetCodeRepository->getAttributeSetId($entityTypeId, $attributeSetCode);
 
             if (null === $attributeSetId) {
-                $attributeSetId = $this->createAttributeSet($attributeSet, 4);
+                $attributeSetId = $this->createAttributeSet($attributeSet, $entityTypeId, $skeletonId = 4);
             }
 
             $inputAttributeGroups = $attributeSet->getAttributeGroups() ?? [];
@@ -134,12 +134,13 @@ class CodedAttributeSetRepository implements CodedAttributeSetRepositoryInterfac
 
     private function createAttributeSet(
         AttributeSetInterface $attributeSet,
+        int $entityTypeId,
         $skeletonId
     ) : int {
         $attributeSetCode = $attributeSet->getAttributeSetCode();
         $_attributeSet = $this->attributeSetFactory->create()
             ->setId(null)
-            ->setEntityTypeId($attributeSet->getEntityTypeCode())
+            ->setEntityTypeId($entityTypeId)
             ->setAttributeSetName($attributeSet->getName())
             ->setSortOrder($attributeSet->getSortOrder());
 
@@ -156,7 +157,8 @@ class CodedAttributeSetRepository implements CodedAttributeSetRepositoryInterfac
     ) {
         $sortOrder = 0;
         foreach ($inputAttributeGroup->getAttributes() ?? [] as $attributeCode) {
-            $this->attributeManagement->assign($entityTypeCode, $attributeSetId, $attributeGroupId, $attributeCode, ++$sortOrder);
+            $this->attributeManagement->assign($entityTypeCode, $attributeSetId, $attributeGroupId, $attributeCode, $sortOrder);
+            $sortOrder++;
         }
     }
 
