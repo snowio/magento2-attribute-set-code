@@ -36,12 +36,14 @@ class AttributeGroupCodeRepository
         return $result ? $result : null;
     }
 
-    public function getAttributeGroupIds($attributeSetCode)
+    public function getAttributeGroupIds(string $attributeSetCode, int $entityTypeId)
     {
         $select = $this->dbConnection->select()
             ->from(['t' => $this->getAttributeGroupTableName()], 'attribute_group_id')
             ->join(['a' => $this->getAttributeSetCodeTableName()], 'a.attribute_set_id = t.attribute_set_id', [])
-            ->where('a.attribute_set_code = ?', $attributeSetCode);
+            ->join(['s' => $this->getAttributeSetTableName()], 's.attribute_set_id=t.attribute_set_id', [])
+            ->where('a.attribute_set_code = ?', $attributeSetCode)
+            ->where('s.entity_type_id = ?', $entityTypeId);
 
         $result = $this->dbConnection->fetchAll($select);
         return $result ? array_column($result, 'attribute_group_id') : null;
@@ -61,6 +63,11 @@ class AttributeGroupCodeRepository
     private function getAttributeSetCodeTableName()
     {
         return $this->dbConnection->getTableName('attribute_set_code');
+    }
+
+    private function getAttributeSetTableName()
+    {
+        return $this->dbConnection->getTableName('eav_attribute_set');
     }
 
     private function getAttributeGroupTableName()
