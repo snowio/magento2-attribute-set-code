@@ -160,9 +160,16 @@ class CodedAttributeSetRepository implements CodedAttributeSetRepositoryInterfac
             ->setSortOrder($attributeSet->getSortOrder());
 
         $_attributeSet = $this->attributeSetManagement->create($attributeSet->getEntityTypeCode(),$_attributeSet, $defaultAttributeSetId);
+        $attributes = $this->attributeManagement->getAttributes($attributeSet->getEntityTypeCode(), $_attributeSet->getAttributeSetId());
+        foreach ($attributes as $attribute) {
+            $this->attributeManagement->unassign($_attributeSet->getAttributeSetId(), $attribute->getAttributeCode());
+        }
         $this->attributeSetCodeRepository->setAttributeSetCode($_attributeSet->getAttributeSetId(), $attributeSetCode);
         return $_attributeSet->getAttributeSetId();
     }
+
+
+
 
     private function assignAttributesInGroup(
         AttributeGroupInterface $inputAttributeGroup,
