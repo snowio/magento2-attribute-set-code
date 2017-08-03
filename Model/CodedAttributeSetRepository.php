@@ -95,7 +95,7 @@ class CodedAttributeSetRepository implements CodedAttributeSetRepositoryInterfac
                 }
 
                 //input attribute group code is a map that contains attribute group code -> attribute group id
-                $existingAttributeGroupIds = $this->attributeGroupCodeRepository->getAttributeGroupIds($attributeSetCode) ?? [];
+                $existingAttributeGroupIds = $this->attributeGroupCodeRepository->getAttributeGroupIds($attributeSetId) ?? [];
                 $attributeGroupIdsToRemove = array_diff($existingAttributeGroupIds, $inputAttributeGroupIdsThatAlreadyExist);
                 $this->removeAttributeGroups($attributeGroupIdsToRemove);
 
@@ -120,7 +120,7 @@ class CodedAttributeSetRepository implements CodedAttributeSetRepositoryInterfac
             }
 
             $connection->commit();
-            return $attributeSet;
+            return $this->attributeSetRepository->get($attributeSetId);
         } catch (\Throwable $e) {
             $connection->rollBack();
             throw $e;
@@ -159,10 +159,19 @@ class CodedAttributeSetRepository implements CodedAttributeSetRepositoryInterfac
             ->setAttributeSetName($attributeSet->getName())
             ->setSortOrder($attributeSet->getSortOrder());
 
+
         $_attributeSet = $this->attributeSetManagement->create($attributeSet->getEntityTypeCode(),$_attributeSet, $defaultAttributeSetId);
+        $attributeGroupIdsToRemove = $this->attributeGroupCodeRepository->getAttributeGroupIds($_attributeSet->getAttributeSetId()) ?? [];
+
+        foreach ($attributeGroupIdsToRemove as $attributeGroupIdToRemove) {
+            $this->attributeGroupRepository->deleteById($attributeGroupIdToRemove);
+        }
         $this->attributeSetCodeRepository->setAttributeSetCode($_attributeSet->getAttributeSetId(), $attributeSetCode);
         return $_attributeSet->getAttributeSetId();
     }
+
+
+
 
     private function assignAttributesInGroup(
         AttributeGroupInterface $inputAttributeGroup,
