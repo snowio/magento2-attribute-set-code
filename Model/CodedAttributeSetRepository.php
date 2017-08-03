@@ -72,7 +72,7 @@ class CodedAttributeSetRepository implements CodedAttributeSetRepositoryInterfac
             if (null === $attributeSetId) {
                 $attributeSetId = $this->createAttributeSet($attributeSet, $entityTypeId);
             } else {
-                $this->updateAttributeSet($attributeSet, $attributeSetId, $entityTypeId);
+                $this->updateAttributeSet($attributeSet, $attributeSetId);
             }
 
             $inputAttributeGroups = $attributeSet->getAttributeGroups();
@@ -159,8 +159,7 @@ class CodedAttributeSetRepository implements CodedAttributeSetRepositoryInterfac
             ->setAttributeSetName($attributeSet->getName())
             ->setSortOrder($attributeSet->getSortOrder());
 
-
-        $_attributeSet = $this->attributeSetManagement->create($attributeSet->getEntityTypeCode(),$_attributeSet, $defaultAttributeSetId);
+        $_attributeSet = $this->attributeSetManagement->create($attributeSet->getEntityTypeCode(), $_attributeSet, $defaultAttributeSetId);
         $attributeGroupIdsToRemove = $this->attributeGroupCodeRepository->getAttributeGroupIds($_attributeSet->getAttributeSetId()) ?? [];
 
         foreach ($attributeGroupIdsToRemove as $attributeGroupIdToRemove) {
@@ -169,9 +168,6 @@ class CodedAttributeSetRepository implements CodedAttributeSetRepositoryInterfac
         $this->attributeSetCodeRepository->setAttributeSetCode($_attributeSet->getAttributeSetId(), $attributeSetCode);
         return $_attributeSet->getAttributeSetId();
     }
-
-
-
 
     private function assignAttributesInGroup(
         AttributeGroupInterface $inputAttributeGroup,
@@ -197,7 +193,6 @@ class CodedAttributeSetRepository implements CodedAttributeSetRepositoryInterfac
         },$this->attributeRepository->getList($entityTypeCode, $searchCriteria)->getItems());
     }
 
-
     private function removeAttributesFromSet(int $attributeSetId, array $attributesToRemove)
     {
         foreach ($attributesToRemove as $attributeToRemove) {
@@ -205,13 +200,14 @@ class CodedAttributeSetRepository implements CodedAttributeSetRepositoryInterfac
         }
     }
 
-    private function updateAttributeSet(AttributeSetInterface $attributeSet, int $attributeSetId, int $entityTypeId)
-    {
-        $_attributeSet = $this->attributeSetFactory->create()
-            ->setId($attributeSetId)
-            ->setEntityTypeId($entityTypeId)
+    private function updateAttributeSet(AttributeSetInterface $attributeSet, int $attributeSetId)
+    {   /** @var \Magento\Eav\Api\Data\AttributeSetInterface $_attributeSet */
+
+        $_attributeSet = $this->attributeSetRepository->get($attributeSetId);
+        $_attributeSet
             ->setAttributeSetName($attributeSet->getName())
             ->setSortOrder($attributeSet->getSortOrder());
+
         $this->attributeSetRepository->save($_attributeSet);
     }
 }
