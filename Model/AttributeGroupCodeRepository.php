@@ -3,68 +3,69 @@
 namespace SnowIO\AttributeSetCode\Model;
 
 use Magento\Framework\App\ResourceConnection;
-use Magento\Framework\Model\ResourceModel\Db\Context;
+use Magento\Framework\DB\Adapter\AdapterInterface;
 
 class AttributeGroupCodeRepository
 {
-    private $dbConnection;
+    private $resourceConnection;
+    private $dbAdapter;
 
-    public function __construct(Context $dbContext, $connectionName = null)
+    public function __construct(ResourceConnection $resourceConnection, AdapterInterface $dbAdapter = null)
     {
-        $connectionName = $connectionName ?: ResourceConnection::DEFAULT_CONNECTION;
-        $this->dbConnection = $dbContext->getResources()->getConnection($connectionName);
+        $this->resourceConnection = $resourceConnection;
+        $this->dbAdapter = $dbAdapter ?? $resourceConnection->getConnection();
     }
 
     public function getAttributeGroupId(string $attributeGroupCode, int $attributeSetId)
     {
-        $select = $this->dbConnection->select()
+        $select = $this->dbAdapter->select()
             ->from(['t' => $this->getAttributeGroupTableName()], 'attribute_group_id')
             ->where('t.attribute_group_code = ?', $attributeGroupCode)
             ->where('t.attribute_set_id = ?', $attributeSetId);
 
-        $result = $this->dbConnection->fetchOne($select);
+        $result = $this->dbAdapter->fetchOne($select);
         return $result ? (int) $result : null;
     }
 
     public function getAttributeGroupCode($attributeGroupId)
     {
-        $select = $this->dbConnection->select()
+        $select = $this->dbAdapter->select()
             ->from(['t' => $this->getAttributeGroupTableName()], 'attribute_group_code')
             ->where('t.attribute_group_id = ?', $attributeGroupId);
 
-        $result = $this->dbConnection->fetchOne($select);
+        $result = $this->dbAdapter->fetchOne($select);
         return $result ? $result : null;
     }
 
     public function getAttributeGroupIds($attributeSetCode)
     {
-        $select = $this->dbConnection->select()
+        $select = $this->dbAdapter->select()
             ->from(['t' => $this->getAttributeGroupTableName()], 'attribute_group_id')
             ->join(['a' => $this->getAttributeSetCodeTableName()], 'a.attribute_set_id = t.attribute_set_id', [])
             ->where('a.attribute_set_code = ?', $attributeSetCode);
 
-        $result = $this->dbConnection->fetchAll($select);
+        $result = $this->dbAdapter->fetchAll($select);
         return $result ? array_column($result, 'attribute_group_id') : null;
     }
 
     public function getAttributeGroupCodes($attributeSetCodes)
     {
-        $select = $this->dbConnection->select()
+        $select = $this->dbAdapter->select()
             ->from(['t' => $this->getAttributeGroupTableName()], 'attribute_group_id')
             ->join(['a' => $this->getAttributeSetCodeTableName()], 'a.attribute_set_id = t.attribute_set_id', [])
             ->where('a.attribute_set_code = ?', $attributeSetCodes);
 
-        $result = $this->dbConnection->fetchAll($select);
+        $result = $this->dbAdapter->fetchAll($select);
         return $result ? $result : null;
     }
 
     private function getAttributeSetCodeTableName()
     {
-        return $this->dbConnection->getTableName('attribute_set_code');
+        return $this->resourceConnection->getTableName('attribute_set_code');
     }
 
     private function getAttributeGroupTableName()
     {
-        return $this->dbConnection->getTableName('eav_attribute_group');
+        return $this->resourceConnection->getTableName('eav_attribute_group');
     }
 }

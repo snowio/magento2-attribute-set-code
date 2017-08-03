@@ -3,43 +3,44 @@
 namespace SnowIO\AttributeSetCode\Model;
 
 use Magento\Framework\App\ResourceConnection;
-use Magento\Framework\Model\ResourceModel\Db\Context;
+use Magento\Framework\DB\Adapter\AdapterInterface;
 
 class AttributeSetCodeRepository
 {
-    private $dbConnection;
+    private $resourceConnection;
+    private $dbAdapter;
 
-    public function __construct(Context $dbContext, $connectionName = null)
+    public function __construct(ResourceConnection $resourceConnection, AdapterInterface $dbAdapter = null)
     {
-        $connectionName = $connectionName ?: ResourceConnection::DEFAULT_CONNECTION;
-        $this->dbConnection = $dbContext->getResources()->getConnection($connectionName);
+        $this->resourceConnection = $resourceConnection;
+        $this->dbAdapter = $dbAdapter ?? $resourceConnection->getConnection();
     }
 
     public function getAttributeSetId(int $entityTypeId, string $attributeSetCode)
     {
-        $select = $this->dbConnection->select()
+        $select = $this->dbAdapter->select()
             ->from(['c' => $this->getAttributeSetCodeTableName()], 'attribute_set_id')
             ->join(['a' => $this->getAttributeSetTableName()], 'a.attribute_set_id=c.attribute_set_id', [])
             ->where('c.attribute_set_code = ?', $attributeSetCode)
             ->where('a.entity_type_id = ?', $entityTypeId);
 
-        $result = $this->dbConnection->fetchOne($select);
+        $result = $this->dbAdapter->fetchOne($select);
         return $result ? (int) $result : null;
     }
 
     public function getAttributeSetCode(int $attributeSetId)
     {
-        $select = $this->dbConnection->select()
+        $select = $this->dbAdapter->select()
             ->from(['t' => $this->getAttributeSetCodeTableName()], 'attribute_set_code')
             ->where('t.attribute_set_id = ?', $attributeSetId);
 
-        $result = $this->dbConnection->fetchOne($select);
+        $result = $this->dbAdapter->fetchOne($select);
         return $result ? $result : null;
     }
 
     public function setAttributeSetCode(int $attributeSetId, string $attributeSetCode)
     {
-        $this->dbConnection->insert($this->getAttributeSetCodeTableName(),[
+        $this->dbAdapter->insert($this->getAttributeSetCodeTableName(),[
             'attribute_set_id' => $attributeSetId,
             'attribute_set_code' => $attributeSetCode
         ]);
@@ -47,11 +48,11 @@ class AttributeSetCodeRepository
 
     private function getAttributeSetCodeTableName()
     {
-        return $this->dbConnection->getTableName('attribute_set_code');
+        return $this->resourceConnection->getTableName('attribute_set_code');
     }
 
     private function getAttributeSetTableName()
     {
-        return $this->dbConnection->getTableName('eav_attribute_set');
+        return $this->resourceConnection->getTableName('eav_attribute_set');
     }
 }
