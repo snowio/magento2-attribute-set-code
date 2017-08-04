@@ -157,6 +157,7 @@ class CodedAttributeSetRepositoryTest extends \PHPUnit_Framework_TestCase
         $this->saveAttributeSet($partialAttributeSetData3);
 
         $fullAttributeSetData->setAttributeGroups($partialAttributeSetData3->getAttributeGroups());
+        $fullAttributeSetData->getAttributeGroups()[0]->setName('My Test Attribute Group 1');
         self::assertAttributeSetCorrectInDb($fullAttributeSetData);
 
         $partialAttributeSetData4 = $this->createAttributeSet()
@@ -271,7 +272,7 @@ class CodedAttributeSetRepositoryTest extends \PHPUnit_Framework_TestCase
         self::assertSame($expected->getAttributeGroupCode(), $actual->getAttributeGroupCode());
 
         if ($expected->getSortOrder() !== null) {
-            self::assertSame($expected->getSortOrder(), $actual->getSortOrder());
+            self::assertSame($expected->getSortOrder(), (int)$actual->getSortOrder());
         }
 
         $expectedAttributeCodes = $expected->getAttributes() ?? [];
