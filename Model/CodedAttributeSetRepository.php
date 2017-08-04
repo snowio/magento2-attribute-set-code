@@ -131,10 +131,16 @@ class CodedAttributeSetRepository implements CodedAttributeSetRepositoryInterfac
     private function createAttributeGroup(int $attributeSetId, AttributeGroupInterface $attributeGroup): int
     {
         /** @var \Magento\Eav\Api\Data\AttributeGroupInterface $_attributeGroup */
-        $_attributeGroup = $this->attributeGroupFactory->create()
-            ->setAttributeGroupName($attributeGroup->getName())
-            ->setSortOrder($attributeGroup->getSortOrder())
-            ->setAttributeSetId($attributeSetId);
+        $_attributeGroup = $this->attributeGroupFactory->create();
+        if (($name = $attributeGroup->getName()) !== null) {
+            $_attributeGroup->setAttributeGroupName($name);
+        }
+
+        if (($sortOrder = $attributeGroup->getSortOrder()) !== null) {
+            $_attributeGroup->setSortOrder($sortOrder);
+        }
+
+        $_attributeGroup->setAttributeSetId($attributeSetId);
 
         $_attributeGroup = $this->attributeGroupRepository->save($_attributeGroup);
         return $_attributeGroup->getAttributeGroupId();
@@ -213,7 +219,7 @@ class CodedAttributeSetRepository implements CodedAttributeSetRepositoryInterfac
         }
 
         if (($sortOrder = $attributeSet->getSortOrder()) !== null) {
-            $_attributeSet->setAttributeSetName($sortOrder);
+            $_attributeSet->setSortOrder($sortOrder);
         }
 
         $this->attributeSetRepository->save($_attributeSet);
