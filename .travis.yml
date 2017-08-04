@@ -28,6 +28,7 @@ env:
 matrix:
   allow_failures:
     - env: MAGENTO_VERSION=develop
+    - env: MAGENTO_VERSION=2.0
     - env: MAGENTO_VERSION=2.1-develop
     - env: MAGENTO_VERSION=2.2.0-preview
   exclude:
