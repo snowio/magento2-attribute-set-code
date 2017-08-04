@@ -108,9 +108,10 @@ class CodedAttributeSetRepository implements CodedAttributeSetRepositoryInterfac
                     } else {
                         $attributesInGroup = $this->getAttributes($attributeGroupId, $entityTypeId);
                         if ($attributesInGroup !== null) {
-                            $this->removeAttributesFromSet($attributeSetId,
+                            $this->removeAttributesFromSet($attributeSetId, $attributeSet->getEntityTypeCode(),
                                 array_diff($attributesInGroup, $inputAttributeGroup->getAttributes()));
                         }
+                        $this->updateAttributeGroup($inputAttributeGroup, $attributeGroupId);
                     }
 
                     $this->assignAttributesInGroup($inputAttributeGroup, $attributeSet->getEntityTypeCode(),
@@ -131,7 +132,6 @@ class CodedAttributeSetRepository implements CodedAttributeSetRepositoryInterfac
     {
         /** @var \Magento\Eav\Api\Data\AttributeGroupInterface $_attributeGroup */
         $_attributeGroup = $this->attributeGroupFactory->create()
-            ->setAttributeGroupId(null)
             ->setAttributeGroupName($attributeGroup->getName())
             ->setSortOrder($attributeGroup->getSortOrder())
             ->setAttributeSetId($attributeSetId);
@@ -193,21 +193,44 @@ class CodedAttributeSetRepository implements CodedAttributeSetRepositoryInterfac
         },$this->attributeRepository->getList($entityTypeCode, $searchCriteria)->getItems());
     }
 
-    private function removeAttributesFromSet(int $attributeSetId, array $attributesToRemove)
+    private function removeAttributesFromSet(int $attributeSetId, string $entityTypeCode, array $attributesToRemove)
     {
         foreach ($attributesToRemove as $attributeToRemove) {
-            $this->attributeManagement->unassign($attributeSetId, $attributeToRemove);
+            $attribute = $this->attributeRepository->get($entityTypeCode, $attributeToRemove);
+            if ($attribute->getIsUserDefined()) {
+                $this->attributeManagement->unassign($attributeSetId, $attributeToRemove);
+            }
         }
     }
 
     private function updateAttributeSet(AttributeSetInterface $attributeSet, int $attributeSetId)
-    {   /** @var \Magento\Eav\Api\Data\AttributeSetInterface $_attributeSet */
-
+    {
+        /** @var \Magento\Eav\Api\Data\AttributeSetInterface $_attributeSet */
         $_attributeSet = $this->attributeSetRepository->get($attributeSetId);
-        $_attributeSet
-            ->setAttributeSetName($attributeSet->getName())
-            ->setSortOrder($attributeSet->getSortOrder());
+
+        if (($name = $attributeSet->getName()) !== null) {
+            $_attributeSet->setAttributeSetName($name);
+        }
+
+        if (($sortOrder = $attributeSet->getSortOrder()) !== null) {
+            $_attributeSet->setAttributeSetName($sortOrder);
+        }
 
         $this->attributeSetRepository->save($_attributeSet);
+    }
+
+    private function updateAttributeGroup(AttributeGroupInterface $inputAttributeGroup, int $attributeGroupId)
+    {
+        $_attributeGroup = $this->attributeGroupRepository->get($attributeGroupId);
+
+        if (($sortOrder = $inputAttributeGroup->getSortOrder()) !== null) {
+            $_attributeGroup->setSortOrder($sortOrder);
+        }
+
+        if (($name = $inputAttributeGroup->getName()) !== null) {
+            $_attributeGroup->setAttributeGroupName($name);
+        }
+
+        $this->attributeGroupRepository->save($_attributeGroup);
     }
 }
