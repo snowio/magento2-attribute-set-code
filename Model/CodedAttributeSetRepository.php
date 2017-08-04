@@ -107,7 +107,7 @@ class CodedAttributeSetRepository implements CodedAttributeSetRepositoryInterfac
                         $attributeGroupId = $this->createAttributeGroup($attributeSetId, $inputAttributeGroup);
                     } else {
                         $attributesInGroup = $this->getAttributes($attributeGroupId, $entityTypeId);
-                        if ($attributesInGroup !== null) {
+                        if ($attributesInGroup !== null &&  ($inputAttributes = $inputAttributeGroup->getAttributes()) !== null) {
                             $this->removeAttributesFromSet($attributeSetId, $attributeSet->getEntityTypeCode(),
                                 array_diff($attributesInGroup, $inputAttributeGroup->getAttributes()));
                         }
