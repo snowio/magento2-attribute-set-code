@@ -20,7 +20,8 @@ class AttributeGroup extends DataObject implements AttributeGroupInterface
 
     public function getSortOrder()
     {
-        return $this->getData(AttributeGroupInterface::SORT_ORDER);
+        $sortOrder = $this->getData(AttributeGroupInterface::SORT_ORDER);
+        return $sortOrder ? (int) $sortOrder : null;
     }
 
     public function getAttributes()

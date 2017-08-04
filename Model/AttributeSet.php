@@ -20,7 +20,8 @@ class AttributeSet extends DataObject implements AttributeSetInterface
 
     public function getSortOrder()
     {
-        return $this->getData(AttributeSetInterface::SORT_ORDER);
+        $sortOrder = $this->getData(AttributeSetInterface::SORT_ORDER);
+        return isset($sortOrder) ? (int) $sortOrder : null;
     }
 
     public function getAttributeGroups()
