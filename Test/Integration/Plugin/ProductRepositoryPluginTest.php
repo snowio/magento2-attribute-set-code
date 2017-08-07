@@ -9,7 +9,6 @@ use Magento\Catalog\Model\Product\Visibility;
 use Magento\Framework\Api\ExtensionAttributesFactory;
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Exception\LocalizedException;
-use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\ObjectManagerInterface;
 use SnowIO\AttributeSetCode\Api\CodedAttributeSetRepositoryInterface;
 use SnowIO\AttributeSetCode\Model\AttributeSetCodeRepository;
@@ -53,7 +52,8 @@ class ProductRepositoryPluginTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @expectedException NoSuchEntityException
+     * @expectedException LocalizedException
+     * @expectedExceptionMessageRegExp /The specified attribute set code \w+ does not exist/
      */
     public function testAttributeSetCodeThatDoesNotExist()
     {
@@ -63,10 +63,6 @@ class ProductRepositoryPluginTest extends \PHPUnit_Framework_TestCase
                 ->setAttributeSetCode('non-existent-attribute-set')
         );
         $this->productRepository->save($product);
-
-        $loadedProduct = $this->productRepository->get($product->getSku());
-        self::assertNotSame($product, $loadedProduct);
-        self::assertEquals($this->attributeSetId, $product->getAttributeSetId());
     }
 
     public function testAttributeSetId()
@@ -76,7 +72,7 @@ class ProductRepositoryPluginTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @expectedException LocalizedException
+     * @expectedException \Magento\Framework\Exception\LocalizedException
      */
     public function testBothAttributeSetIdAndAttributeSetCodeSpecified()
     {
