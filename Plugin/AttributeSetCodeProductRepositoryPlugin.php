@@ -20,6 +20,10 @@ class AttributeSetCodeProductRepositoryPlugin
         ProductInterface $product,
         $saveOptions = false
     ) {
+        if ($product->getAttributeSetId() !== null) {
+            return [$product, $saveOptions];
+        }
+
         if (!$extensionAttributes = $product->getExtensionAttributes()) {
             return [$product, $saveOptions];
         }
