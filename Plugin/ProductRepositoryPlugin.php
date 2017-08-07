@@ -6,7 +6,7 @@ use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Phrase;
 
-class AttributeSetCodeProductRepositoryPlugin
+class ProductRepositoryPlugin
 {
     private $attributeSetCodeRepository;
 

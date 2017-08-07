@@ -6,7 +6,7 @@
     <preference for="SnowIO\AttributeSetCode\Api\Data\AttributeSetInterface" type="SnowIO\AttributeSetCode\Model\AttributeSet" />
 
     <type name="Magento\Catalog\Api\ProductRepositoryInterface">
-        <plugin name="AttributeSetCodeProductRepositoryPlugin" type="SnowIO\AttributeSetCode\Plugin\AttributeSetCodeProductRepositoryPlugin" disabled="false" />
+        <plugin name="ProductRepositoryPlugin" type="SnowIO\AttributeSetCode\Plugin\ProductRepositoryPlugin" disabled="false" />
     </type>
 
 </config>
