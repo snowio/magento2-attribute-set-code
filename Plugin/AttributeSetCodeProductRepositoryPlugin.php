@@ -3,6 +3,8 @@
 namespace SnowIO\AttributeSetCode\Plugin;
 
 use Magento\Catalog\Api\Data\ProductInterface;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Phrase;
 
 class AttributeSetCodeProductRepositoryPlugin
 {
@@ -26,6 +28,9 @@ class AttributeSetCodeProductRepositoryPlugin
             return [$product, $saveOptions];
         }
         $attributeSetId = $this->attributeSetCodeRepository->getAttributeSetId(4, $attributeSetCode);
+        if ($attributeSetId === null) {
+            throw new LocalizedException(new Phrase("The specified attribute set code %1 does not exist", [$attributeSetCode]));
+        }
         $product->setAttributeSetId($attributeSetId);
 
         return [$product, $saveOptions];
