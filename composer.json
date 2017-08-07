@@ -22,10 +22,5 @@
         "psr-4": {
             "SnowIO\\AttributeSetCode\\": ""
         }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "SnowIO\\AttributeSetCode\\Test": "Test"
-        }
     }
 }
