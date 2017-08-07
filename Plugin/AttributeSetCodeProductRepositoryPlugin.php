@@ -1,5 +1,6 @@
 <?php
 
+namespace SnowIO\AttributeSetCode\Plugin;
 
 use Magento\Catalog\Api\Data\ProductInterface;
 
