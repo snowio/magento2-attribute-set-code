@@ -71,18 +71,17 @@ class ProductRepositoryPluginTest extends \PHPUnit_Framework_TestCase
         $this->productRepository->save($product);
     }
 
-    /**
-     * @expectedException \Magento\Framework\Exception\LocalizedException
-     */
     public function testBothAttributeSetIdAndAttributeSetCodeSpecified()
     {
         $product = $this->getProductData();
         $product->setAttributeSetId($this->attributeSetId);
         $product->setExtensionAttributes(
             $this->extensionAttributeRepositoryFactory->create(ProductInterface::class)
-                ->setAttributeSetCode(self::ATTRIBUTE_SET_CODE)
+                ->setAttributeSetCode('non-existent-attribute-set-code')
         );
         $this->productRepository->save($product);
+        $loadedProduct = $this->productRepository->get($product->getSku());
+        self::assertEquals($this->attributeSetId, $loadedProduct->getAttributeSetId());
     }
 
     private function getProductAttributeSetId($attributeSetCode)
