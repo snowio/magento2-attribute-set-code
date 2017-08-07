@@ -14,7 +14,7 @@ use Magento\Framework\ObjectManagerInterface;
 use SnowIO\AttributeSetCode\Api\CodedAttributeSetRepositoryInterface;
 use SnowIO\AttributeSetCode\Model\AttributeSetCodeRepository;
 
-class ProductRepositoryTestPlugin extends \PHPUnit_Framework_TestCase
+class ProductRepositoryPluginTest extends \PHPUnit_Framework_TestCase
 {
     const ATTRIBUTE_SET_CODE = 'test-attribute-set';
 
