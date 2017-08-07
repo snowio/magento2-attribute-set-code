@@ -53,7 +53,7 @@ class ProductRepositoryPluginTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @expectedException \Magento\Framework\Exception\LocalizedException
-     * @expectedExceptionMessageRegExp /The specified attribute set code \w+ does not exist/
+     * @expectedExceptionMessage /The specified attribute set code \w+ does not exist/
      */
     public function testAttributeSetCodeThatDoesNotExist()
     {
