@@ -202,7 +202,7 @@ class CodedAttributeSetRepositoryTest extends TestCase
     {
         $objectManager = ObjectManager::getInstance();
         /** @var CodedAttributeSetRepository $attributeSetRepository */
-        $attributeSetRepository = $objectManager->get(AttributeSetRepositoryInterface::class);
+        $attributeSetRepository = $objectManager->get(CodedAttributeSetRepository::class);
         $attributeSetRepository->save($attributeSet);
     }
 
