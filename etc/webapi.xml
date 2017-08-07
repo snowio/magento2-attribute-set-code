@@ -2,6 +2,7 @@
     <route url="/V1/attribute-set-code/attribute-sets" method="POST">
         <service class="SnowIO\AttributeSetCode\Api\AttributeSetRepositoryInterface" method="save"/>
         <resources>
+            <!--Copied from Magento\Eav\webapi.xml -->
             <resource ref="Magento_Catalog::sets"/>
         </resources>
     </route>
