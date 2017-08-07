@@ -53,16 +53,21 @@ class ProductRepositoryPluginTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @expectedException \Magento\Framework\Exception\LocalizedException
-     * @expectedExceptionMessage /The specified attribute set code \w+ does not exist/
      */
     public function testAttributeSetCodeThatDoesNotExist()
     {
         $product = $this->getProductData();
         $product->setExtensionAttributes(
             $this->extensionAttributeRepositoryFactory->create(ProductInterface::class)
-                ->setAttributeSetCode('non-existent-attribute-set')
+                ->setAttributeSetCode($nonExistentAttributeSetCode = 'non-existent-attribute-set')
         );
-        $this->productRepository->save($product);
+        try {
+            $this->productRepository->save($product);
+            self::fail('Expected exception was not thrown');
+        } catch (LocalizedException $e) {
+            $expectedMessage = "The specified attribute set code $nonExistentAttributeSetCode does not exist";
+            self::assertSame($expectedMessage, $e->getMessage());
+        }
     }
 
     public function testAttributeSetId()
