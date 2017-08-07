@@ -51,9 +51,6 @@ class ProductRepositoryPluginTest extends \PHPUnit_Framework_TestCase
         self::assertEquals($this->attributeSetId, $product->getAttributeSetId());
     }
 
-    /**
-     * @expectedException \Magento\Framework\Exception\LocalizedException
-     */
     public function testAttributeSetCodeThatDoesNotExist()
     {
         $product = $this->getProductData();
