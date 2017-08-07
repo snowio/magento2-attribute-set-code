@@ -3,7 +3,7 @@ namespace SnowIO\AttributeSetCode\Api;
 
 use SnowIO\AttributeSetCode\Api\Data\AttributeSetInterface;
 
-interface CodedAttributeSetRepositoryInterface
+interface AttributeSetRepositoryInterface
 {
     /**
      * Save attribute set data

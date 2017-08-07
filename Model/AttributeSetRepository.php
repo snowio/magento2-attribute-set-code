@@ -12,11 +12,11 @@ use Magento\Eav\Api\Data\AttributeInterface;
 use Magento\Eav\Api\Data\AttributeSetInterfaceFactory;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\App\ResourceConnection;
-use SnowIO\AttributeSetCode\Api\CodedAttributeSetRepositoryInterface;
 use SnowIO\AttributeSetCode\Api\Data\AttributeGroupInterface;
 use SnowIO\AttributeSetCode\Api\Data\AttributeSetInterface;
+use SnowIO\AttributeSetCode\Api\AttributeSetRepositoryInterface as CodedAttributeSetRepositoryInterface;
 
-class CodedAttributeSetRepository implements CodedAttributeSetRepositoryInterface
+class AttributeSetRepository implements CodedAttributeSetRepositoryInterface
 {
     private $attributeSetCodeRepository;
     private $attributeGroupCodeRepository;
