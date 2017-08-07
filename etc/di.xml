@@ -4,4 +4,9 @@
     <preference for="SnowIO\AttributeSetCode\Api\CodedProductAttributeSetManagementInterface" type="SnowIO\AttributeSetCode\Model\CodedProductAttributeSetManagement" />
     <preference for="SnowIO\AttributeSetCode\Api\Data\AttributeGroupInterface" type="SnowIO\AttributeSetCode\Model\AttributeGroup" />
     <preference for="SnowIO\AttributeSetCode\Api\Data\AttributeSetInterface" type="SnowIO\AttributeSetCode\Model\AttributeSet" />
+
+    <type name="Magento\Catalog\Api\ProductRepositoryInterface">
+        <plugin name="AttributeSetCodeProductRepositoryPlugin" type="SnowIO\AttributeSetCode\Plugin\AttributeSetCodeProductRepositoryPlugin" disabled="false" />
+    </type>
+
 </config>
