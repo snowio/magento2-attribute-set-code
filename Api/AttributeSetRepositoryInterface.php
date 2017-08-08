@@ -1,8 +1,6 @@
 <?php
 namespace SnowIO\AttributeSetCode\Api;
 
-use SnowIO\AttributeSetCode\Api\Data\AttributeSetInterface;
-
 interface AttributeSetRepositoryInterface
 {
     /**
@@ -14,6 +12,6 @@ interface AttributeSetRepositoryInterface
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      * @throws \Magento\Framework\Exception\LocalizedException If attribute set is not found
      */
-    public function save(AttributeSetInterface $attributeSet);
+    public function save(\SnowIO\AttributeSetCode\Api\Data\AttributeSetInterface $attributeSet);
 
 }
