@@ -9,22 +9,22 @@ interface AttributeGroupInterface
     const ATTRIBUTES = 'attributes';
 
     /**
-     * @return null|string
+     * @return string|null
      */
     public function getAttributeGroupCode();
 
     /**
-     * @return null|string
+     * @return string|null
      */
     public function getName();
 
     /**
-     * @return null|int
+     * @return int|null
      */
     public function getSortOrder();
 
     /**
-     * @return null|string[]
+     * @return string[]|null
      */
     public function getAttributes();
 
