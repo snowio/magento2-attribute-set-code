@@ -2,6 +2,7 @@
 namespace SnowIO\AttributeSetCode\Test\Integration\Model;
 
 use Magento\Eav\Api\AttributeGroupRepositoryInterface;
+use Magento\Eav\Api\AttributeManagementInterface;
 use Magento\Eav\Api\AttributeRepositoryInterface;
 use Magento\Eav\Api\AttributeSetRepositoryInterface;
 use Magento\Eav\Api\Data\AttributeInterface;
@@ -14,10 +15,14 @@ use SnowIO\AttributeSetCode\Api\AttributeSetRepositoryInterface as CodedAttribut
 use SnowIO\AttributeSetCode\Api\Data\AttributeGroupInterface;
 use SnowIO\AttributeSetCode\Api\Data\AttributeSetInterface;
 use SnowIO\AttributeSetCode\Model\AttributeSetCodeRepository;
+use SnowIO\AttributeSetCode\Model\EntityTypeCodeRepository;
 use SnowIO\AttributeSetCode\Test\TestCase;
+use Zend\Form\Annotation\Object;
 
 class AttributeSetRepositoryTest extends TestCase
 {
+
+
     public function testCreateImplicitlyEmptyAttributeSet()
     {
         $attributeSetData = $this->createAttributeSet()
@@ -181,6 +186,7 @@ class AttributeSetRepositoryTest extends TestCase
         self::assertAttributeSetCorrectInDb($fullAttributeSetData);
     }
 
+
     private function createAttributeSet(): AttributeSetInterface
     {
         return ObjectManager::getInstance()->create(AttributeSetInterface::class);
@@ -217,7 +223,6 @@ class AttributeSetRepositoryTest extends TestCase
         $attributeSetId = $attributeSetCodeRepository->getAttributeSetId($entityTypeId, $expected->getAttributeSetCode());
         self::assertNotNull($attributeSetId, \sprintf("The attribute set %s:%s does not exist.", $expected->getEntityTypeCode(), $expected->getAttributeSetCode()));
         $actual = $attributeSetRepository->get($attributeSetId);
-
         self::assertAttributeSetAsExpected($expected, $actual);
     }
 
@@ -228,6 +233,36 @@ class AttributeSetRepositoryTest extends TestCase
         self::assertSame($expected->getName(), $actual->getAttributeSetName());
         $expectedAttributeGroups = $expected->getAttributeGroups() ?? [];
         self::assertAttributeGroupsAsExpected($expected->getEntityTypeCode(), $expectedAttributeGroups, $actual->getAttributeSetId());
+        self::assertAttributeSetHasSystemAttributes($actual);
+    }
+
+    private static function assertAttributeSetHasSystemAttributes(\Magento\Eav\Api\Data\AttributeSetInterface $actual)
+    {
+        $objectManager = ObjectManager::getInstance();
+        /** @var AttributeManagementInterface $attributeRepository */
+        $attributeManagement = $objectManager->get(AttributeManagementInterface::class);
+        /** @var EntityTypeCodeRepository $attributeSetSystemAttributes */
+        $attributeSetSystemAttributes = $objectManager->get(EntityTypeCodeRepository::class);
+        $entityTypeCode = $attributeSetSystemAttributes->getEntityTypeCode($actual->getEntityTypeId());
+        $defaultAttributeSet = $attributeSetSystemAttributes->getDefaultAttributeSetId($entityTypeCode);
+        $attributes = $attributeManagement->getAttributes($entityTypeCode, $defaultAttributeSet);
+
+        $systemAttributeCodes = [];
+        /** @var AttributeInterface $attribute */
+        foreach ($attributes as $attribute) {
+            if (!$attribute->getIsUserDefined()) {
+                $systemAttributeCodes[] = $attribute->getAttributeCode();
+            }
+        }
+
+        $attributes = $attributeManagement->getAttributes($entityTypeCode, $actual->getAttributeSetId());
+        $attributeSetSystemAttributes = [];
+        foreach ($attributes as $attribute) {
+            if (!$attribute->getIsUserDefined()) {
+                $attributeSetSystemAttributes[] = $attribute->getAttributeCode();
+            }
+        }
+        self::assertSame($systemAttributeCodes, $attributeSetSystemAttributes);
     }
 
     private static function assertAttributeGroupsAsExpected(string $entityTypeCode, array $expectedGroups, string $actualAttributeSetId)
@@ -283,6 +318,7 @@ class AttributeSetRepositoryTest extends TestCase
             ->addSortOrder((new SortOrder())->setField('sort_order')->setDirection(SortOrder::SORT_ASC))
             ->create();
         $actualAttributes = $attributeRepository->getList($entityTypeCode, $searchCriteria)->getItems();
+        self::assertNotEmpty($actualAttributes);
         self::assertSameSize($expectedAttributeCodes, $actualAttributes);
         $actualAttributeCodes = \array_map(function (AttributeInterface $attribute) {
             return $attribute->getAttributeCode();
