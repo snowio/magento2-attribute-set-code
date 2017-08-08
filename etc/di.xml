@@ -1,7 +1,6 @@
 <?xml version="1.0"?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
-    <preference for="SnowIO\AttributeSetCode\Api\CodedAttributeSetRepositoryInterface" type="SnowIO\AttributeSetCode\Model\CodedAttributeSetRepository" />
-    <preference for="SnowIO\AttributeSetCode\Api\CodedProductAttributeSetManagementInterface" type="SnowIO\AttributeSetCode\Model\CodedProductAttributeSetManagement" />
+    <preference for="SnowIO\AttributeSetCode\Api\AttributeSetRepositoryInterface" type="SnowIO\AttributeSetCode\Model\AttributeSetRepository" />
     <preference for="SnowIO\AttributeSetCode\Api\Data\AttributeGroupInterface" type="SnowIO\AttributeSetCode\Model\AttributeGroup" />
     <preference for="SnowIO\AttributeSetCode\Api\Data\AttributeSetInterface" type="SnowIO\AttributeSetCode\Model\AttributeSet" />
 

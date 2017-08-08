@@ -10,27 +10,27 @@ interface AttributeSetInterface
     const ENTITY_TYPE_CODE = 'entity_type_code';
 
     /**
-     * @return null|string
+     * @return string|null
      */
     public function getAttributeSetCode();
 
     /**
-     * @return null|string
+     * @return string|null
      */
     public function getName();
 
     /**
-     * @return null|int
+     * @return int|null
      */
     public function getSortOrder();
 
     /**
-     * @return null|AttributeGroupInterface[]
+     * @return \SnowIO\AttributeSetCode\Api\Data\AttributeGroupInterface[]|null
      */
     public function getAttributeGroups();
 
     /**
-     * @return null|string
+     * @return string|null
      */
     public function getEntityTypeCode();
 

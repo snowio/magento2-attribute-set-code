@@ -1,7 +1,8 @@
 <routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Webapi:etc/webapi.xsd">
-    <route url="/V1/products/attribute-sets-with-code/:attributeSetCode" method="PUT">
-        <service class="SnowIO\AttributeOptionCode\Api\CodedProductAttributeRepositoryInterface" method="save"/>
+    <route url="/V1/attribute-set-code/attribute-sets" method="POST">
+        <service class="SnowIO\AttributeSetCode\Api\AttributeSetRepositoryInterface" method="save"/>
         <resources>
+            <!--Copied from Magento\Eav\webapi.xml -->
             <resource ref="Magento_Catalog::sets"/>
         </resources>
     </route>

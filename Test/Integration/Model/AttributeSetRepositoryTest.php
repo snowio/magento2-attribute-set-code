@@ -10,13 +10,13 @@ use Magento\Eav\Model\Entity\Type;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Api\SortOrder;
 use Magento\Framework\App\ObjectManager;
-use SnowIO\AttributeSetCode\Api\CodedAttributeSetRepositoryInterface;
+use SnowIO\AttributeSetCode\Api\AttributeSetRepositoryInterface as CodedAttributeSetRepository;
 use SnowIO\AttributeSetCode\Api\Data\AttributeGroupInterface;
 use SnowIO\AttributeSetCode\Api\Data\AttributeSetInterface;
 use SnowIO\AttributeSetCode\Model\AttributeSetCodeRepository;
 use SnowIO\AttributeSetCode\Test\TestCase;
 
-class CodedAttributeSetRepositoryTest extends TestCase
+class AttributeSetRepositoryTest extends TestCase
 {
     public function testCreateImplicitlyEmptyAttributeSet()
     {
@@ -201,8 +201,8 @@ class CodedAttributeSetRepositoryTest extends TestCase
     private function saveAttributeSet(AttributeSetInterface $attributeSet)
     {
         $objectManager = ObjectManager::getInstance();
-        /** @var CodedAttributeSetRepositoryInterface $attributeSetRepository */
-        $attributeSetRepository = $objectManager->get(CodedAttributeSetRepositoryInterface::class);
+        /** @var CodedAttributeSetRepository $attributeSetRepository */
+        $attributeSetRepository = $objectManager->get(CodedAttributeSetRepository::class);
         $attributeSetRepository->save($attributeSet);
     }
 

@@ -10,7 +10,7 @@ use Magento\Framework\Api\ExtensionAttributesFactory;
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\ObjectManagerInterface;
-use SnowIO\AttributeSetCode\Api\CodedAttributeSetRepositoryInterface;
+use SnowIO\AttributeSetCode\Api\AttributeSetRepositoryInterface;
 use SnowIO\AttributeSetCode\Model\AttributeSetCodeRepository;
 use SnowIO\AttributeSetCode\Test\TestCase;
 
@@ -101,8 +101,8 @@ class ProductRepositoryPluginTest extends TestCase
             ->setSortOrder(50);
 
         $objectManager = ObjectManager::getInstance();
-        /** @var CodedAttributeSetRepositoryInterface $attributeSetRepository */
-        $attributeSetRepository = $objectManager->get(CodedAttributeSetRepositoryInterface::class);
+        /** @var AttributeSetRepositoryInterface $attributeSetRepository */
+        $attributeSetRepository = $objectManager->get(AttributeSetRepositoryInterface::class);
         $attributeSetRepository->save($attributeSet);
     }
 
