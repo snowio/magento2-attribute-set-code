@@ -25,7 +25,7 @@ interface AttributeSetInterface
     public function getSortOrder();
 
     /**
-     * @return AttributeGroupInterface[]|null
+     * @return \SnowIO\AttributeSetCode\Api\Data\AttributeGroupInterface[]|null
      */
     public function getAttributeGroups();
 
