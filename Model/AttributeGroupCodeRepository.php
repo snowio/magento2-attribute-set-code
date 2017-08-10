@@ -27,16 +27,6 @@ class AttributeGroupCodeRepository
         return $result ? (int) $result : null;
     }
 
-    public function getAttributeGroupCode($attributeGroupId)
-    {
-        $select = $this->dbAdapter->select()
-            ->from(['t' => $this->getAttributeGroupTableName()], 'attribute_group_code')
-            ->where('t.attribute_group_id = ?', $attributeGroupId);
-
-        $result = $this->dbAdapter->fetchOne($select);
-        return $result ? $result : null;
-    }
-
     public function getAttributeGroupIds(int $attributeSetId): array
     {
         $select = $this->dbAdapter->select()

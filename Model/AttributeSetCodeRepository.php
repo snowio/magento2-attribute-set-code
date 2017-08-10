@@ -28,16 +28,6 @@ class AttributeSetCodeRepository
         return $result ? (int) $result : null;
     }
 
-    public function getAttributeSetCode(int $attributeSetId)
-    {
-        $select = $this->dbAdapter->select()
-            ->from(['t' => $this->getAttributeSetCodeTableName()], 'attribute_set_code')
-            ->where('t.attribute_set_id = ?', $attributeSetId);
-
-        $result = $this->dbAdapter->fetchOne($select);
-        return $result ? $result : null;
-    }
-
     public function setAttributeSetCode(int $attributeSetId, string $attributeSetCode)
     {
         $this->dbAdapter->insert($this->getAttributeSetCodeTableName(),[
