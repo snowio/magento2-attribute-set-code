@@ -21,6 +21,8 @@ if ($codeCoverage) {
     unset($config->filter);
     $whitelistNode = $config->addChild('filter')->addChild('whitelist');
     $whitelistNode->addChild('directory', "../../../vendor/$packageName")->addAttribute('suffix', '.php');
+    $whitelistNode->addChild('exclude')->addChild('file', "../../../vendor/$packageName/registration.php");
+    $whitelistNode->addChild('exclude')->addChild('directory', "../../../vendor/$packageName/Setup");
     $whitelistNode->addChild('exclude')->addChild('directory', "../../../vendor/$packageName/Test");
     $whitelistNode->addChild('exclude')->addChild('directory', "../../../vendor/$packageName/travis");
 }
