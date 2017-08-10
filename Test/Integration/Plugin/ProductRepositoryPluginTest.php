@@ -97,7 +97,7 @@ class ProductRepositoryPluginTest extends TestCase
         $attributeSet = $this->objectManager->create(\SnowIO\AttributeSetCode\Api\Data\AttributeSetInterface::class)
             ->setEntityTypeCode('catalog_product')
             ->setAttributeSetCode($attributeSetCode)
-            ->setName('My Test Attribute Set 1')
+            ->setName('My Test Attribute Set')
             ->setSortOrder(50);
 
         $objectManager = ObjectManager::getInstance();

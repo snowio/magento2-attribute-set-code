@@ -11,6 +11,8 @@ use Magento\Eav\Api\Data\AttributeGroupInterfaceFactory;
 use Magento\Eav\Api\Data\AttributeInterface;
 use Magento\Eav\Api\Data\AttributeSetInterfaceFactory;
 use Magento\Framework\Api\SearchCriteriaBuilder;
+use Magento\Framework\Api\SortOrder;
+use Magento\Framework\Api\SortOrderBuilder;
 use Magento\Framework\App\ResourceConnection;
 use SnowIO\AttributeSetCode\Api\Data\AttributeGroupInterface;
 use SnowIO\AttributeSetCode\Api\Data\AttributeSetInterface;
@@ -31,6 +33,7 @@ class AttributeSetRepository implements CodedAttributeSetRepositoryInterface
     private $resourceConnection;
     private $entityTypeCodeRepository;
     private $attributeSetRepository;
+    private $sortOrderBuilder;
 
     public function __construct(
         AttributeGroupCodeRepository $attributeGroupCodeRepository,
@@ -44,7 +47,8 @@ class AttributeSetRepository implements CodedAttributeSetRepositoryInterface
         SearchCriteriaBuilder $searchCriteriaBuilder,
         AttributeRepositoryInterface  $attributeRepository,
         ResourceConnection $resourceConnection,
-        EntityTypeCodeRepository $entityTypeCodeRepository
+        EntityTypeCodeRepository $entityTypeCodeRepository,
+        SortOrderBuilder $sortOrderBuilder
     ) {
         $this->attributeGroupCodeRepository = $attributeGroupCodeRepository;
         $this->attributeSetCodeRepository = $attributeSetCodeRepository;
@@ -58,6 +62,7 @@ class AttributeSetRepository implements CodedAttributeSetRepositoryInterface
         $this->attributeRepository = $attributeRepository;
         $this->resourceConnection = $resourceConnection;
         $this->entityTypeCodeRepository = $entityTypeCodeRepository;
+        $this->sortOrderBuilder = $sortOrderBuilder;
     }
 
     public function save(AttributeSetInterface $attributeSet)
@@ -66,12 +71,14 @@ class AttributeSetRepository implements CodedAttributeSetRepositoryInterface
         $connection->beginTransaction();
         try {
             $attributeSetCode = $attributeSet->getAttributeSetCode();
-            $entityTypeId = $this->entityTypeCodeRepository->getEntityTypeId($attributeSet->getEntityTypeCode());
+            $entityTypeId = $this->entityTypeCodeRepository->getEntityTypeId($entityTypeCode = $attributeSet->getEntityTypeCode());
             $attributeSetId = $this->attributeSetCodeRepository->getAttributeSetId($entityTypeId, $attributeSetCode);
 
             if (null === $attributeSetId) {
+                $isNewAttributeSet = true;
                 $attributeSetId = $this->createAttributeSet($attributeSet, $entityTypeId);
             } else {
+                $isNewAttributeSet = false;
                 $this->updateAttributeSet($attributeSet, $attributeSetId);
             }
 
@@ -79,6 +86,7 @@ class AttributeSetRepository implements CodedAttributeSetRepositoryInterface
             if (isset($inputAttributeGroups)) {
                 $inputAttributeGroupCodeToIdMap = [];
                 $inputAttributeGroupIdsThatAlreadyExist = [];
+                $inputAttributeGroups = $this->ignoreSystemAttributes($entityTypeCode, $inputAttributeGroups);
                 foreach ($inputAttributeGroups as $inputAttributeGroup) {
                     $attributeGroupCode = $inputAttributeGroup->getAttributeGroupCode();
                     $attributeGroupId = $this->attributeGroupCodeRepository->getAttributeGroupId($attributeGroupCode,
@@ -95,9 +103,8 @@ class AttributeSetRepository implements CodedAttributeSetRepositoryInterface
                 }
 
                 //input attribute group code is a map that contains attribute group code -> attribute group id
-                $existingAttributeGroupIds = $this->attributeGroupCodeRepository->getAttributeGroupIds($attributeSetId) ?? [];
+                $existingAttributeGroupIds = $this->attributeGroupCodeRepository->getAttributeGroupIds($attributeSetId);
                 $attributeGroupIdsToRemove = array_diff($existingAttributeGroupIds, $inputAttributeGroupIdsThatAlreadyExist);
-                $this->removeAttributeGroups($attributeGroupIdsToRemove);
 
                 foreach ($inputAttributeGroupCodeToIdMap as $attributeGroupCode => $attributeGroupData) {
                     $attributeGroupId = $attributeGroupData['id'];
@@ -106,10 +113,13 @@ class AttributeSetRepository implements CodedAttributeSetRepositoryInterface
                     if ($attributeGroupId === null) {
                         $attributeGroupId = $this->createAttributeGroup($attributeSetId, $inputAttributeGroup);
                     } else {
-                        $attributesInGroup = $this->getAttributes($attributeGroupId, $entityTypeId);
-                        if ($attributesInGroup !== null &&  ($inputAttributes = $inputAttributeGroup->getAttributes()) !== null) {
-                            $this->removeAttributesFromSet($attributeSetId, $attributeSet->getEntityTypeCode(),
-                                array_diff($attributesInGroup, $inputAttributeGroup->getAttributes()));
+                        if (null !== $inputAttributes = $inputAttributeGroup->getAttributes()) {
+                            $attributesAlreadyInGroup = $this->getAttributes($attributeGroupId, $attributeSet->getEntityTypeCode());
+                            foreach ($attributesAlreadyInGroup as $attribute) {
+                                if ($attribute->getIsUserDefined() && !\in_array($attribute->getAttributeCode(), $inputAttributes)) {
+                                    $this->attributeManagement->unassign($attributeSetId, $attribute->getAttributeCode());
+                                }
+                            }
                         }
                         $this->updateAttributeGroup($inputAttributeGroup, $attributeGroupId);
                     }
@@ -118,6 +128,11 @@ class AttributeSetRepository implements CodedAttributeSetRepositoryInterface
                         $attributeSetId,
                         $attributeGroupId);
                 }
+
+                $this->removeNonSystemAttributesAndEmptyGroups($attributeSet->getEntityTypeCode(), $attributeSetId, $attributeGroupIdsToRemove);
+            } elseif ($isNewAttributeSet) {
+                $defaultAttributeGroupIds = $this->attributeGroupCodeRepository->getAttributeGroupIds($attributeSetId);
+                $this->removeNonSystemAttributesAndEmptyGroups($attributeSet->getEntityTypeCode(), $attributeSetId, $defaultAttributeGroupIds);
             }
 
             $connection->commit();
@@ -146,10 +161,21 @@ class AttributeSetRepository implements CodedAttributeSetRepositoryInterface
         return $_attributeGroup->getAttributeGroupId();
     }
 
-    private function removeAttributeGroups(array $attributeGroupIdsToRemove)
+    private function removeNonSystemAttributesAndEmptyGroups(string $entityTypeCode, int $attributeSetId, array $attributeGroupIdsToRemove)
     {
         foreach ($attributeGroupIdsToRemove as $attributeGroupId) {
-            $this->attributeGroupRepository->deleteById($attributeGroupId);
+            $attributesInGroup = $this->getAttributes($attributeGroupId, $entityTypeCode);
+            $removeGroup = true;
+            foreach ($attributesInGroup as $attribute) {
+                if ($attribute->getIsUserDefined()) {
+                    $this->attributeManagement->unassign($attributeSetId, $attribute->getAttributeCode());
+                } else {  // system attribute
+                    $removeGroup = false;
+                }
+            }
+            if ($removeGroup) {
+                $this->attributeGroupRepository->deleteById($attributeGroupId);
+            }
         }
     }
 
@@ -164,13 +190,7 @@ class AttributeSetRepository implements CodedAttributeSetRepositoryInterface
             ->setEntityTypeId($entityTypeId)
             ->setAttributeSetName($attributeSet->getName())
             ->setSortOrder($attributeSet->getSortOrder());
-
         $_attributeSet = $this->attributeSetManagement->create($attributeSet->getEntityTypeCode(), $_attributeSet, $defaultAttributeSetId);
-        $attributeGroupIdsToRemove = $this->attributeGroupCodeRepository->getAttributeGroupIds($_attributeSet->getAttributeSetId()) ?? [];
-
-        foreach ($attributeGroupIdsToRemove as $attributeGroupIdToRemove) {
-            $this->attributeGroupRepository->deleteById($attributeGroupIdToRemove);
-        }
         $this->attributeSetCodeRepository->setAttributeSetCode($_attributeSet->getAttributeSetId(), $attributeSetCode);
         return $_attributeSet->getAttributeSetId();
     }
@@ -188,25 +208,15 @@ class AttributeSetRepository implements CodedAttributeSetRepositoryInterface
         }
     }
 
-    private function getAttributes(int $groupId, int $entityTypeId)
+    /**
+     * @return AttributeInterface[]
+     */
+    private function getAttributes(int $groupId, string $entityTypeCode): array
     {
         $searchCriteria = $this->searchCriteriaBuilder
             ->addFilter(\Magento\Eav\Api\Data\AttributeGroupInterface::GROUP_ID, $groupId)
             ->create();
-        $entityTypeCode = $this->entityTypeCodeRepository->getEntityTypeCode($entityTypeId);
-        return array_map(function (AttributeInterface $attribute) {
-            return $attribute->getAttributeCode();
-        },$this->attributeRepository->getList($entityTypeCode, $searchCriteria)->getItems());
-    }
-
-    private function removeAttributesFromSet(int $attributeSetId, string $entityTypeCode, array $attributesToRemove)
-    {
-        foreach ($attributesToRemove as $attributeToRemove) {
-            $attribute = $this->attributeRepository->get($entityTypeCode, $attributeToRemove);
-            if ($attribute->getIsUserDefined()) {
-                $this->attributeManagement->unassign($attributeSetId, $attributeToRemove);
-            }
-        }
+        return $this->attributeRepository->getList($entityTypeCode, $searchCriteria)->getItems();
     }
 
     private function updateAttributeSet(AttributeSetInterface $attributeSet, int $attributeSetId)
@@ -238,5 +248,40 @@ class AttributeSetRepository implements CodedAttributeSetRepositoryInterface
         }
 
         $this->attributeGroupRepository->save($_attributeGroup);
+    }
+
+    private function ignoreSystemAttributes(string $entityTypeCode, array $inputAttributeGroups): array
+    {
+        $defaultAttributeSetId = $this->entityTypeCodeRepository->getDefaultAttributeSetId($entityTypeCode);
+        $attributesInDefaultAttributeSet = $this->getAttributesByAttributeSet($entityTypeCode, $defaultAttributeSetId);
+        $systemAttributes = \array_filter($attributesInDefaultAttributeSet, function (AttributeInterface $attribute)  {
+            return !$attribute->getIsUserDefined();
+        });
+        $systemAttributeCodes = \array_map(function (AttributeInterface $attribute) {
+            return $attribute->getAttributeCode();
+        }, $systemAttributes);
+        /** @var AttributeGroupInterface  $attributeGroup */
+        foreach ($inputAttributeGroups as $attributeGroup) {
+            $attributes = $attributeGroup->getAttributes();
+            if ($attributes === null) {
+                continue;
+            }
+            $nonSystemAttributes = \array_diff($attributes, $systemAttributeCodes);
+            $attributeGroup->setAttributes($nonSystemAttributes);
+        }
+        return $inputAttributeGroups;
+    }
+
+    private function getAttributesByAttributeSet(string $entityTypeCode, int $attributeSetId)
+    {
+        $sortOrder = $this->sortOrderBuilder
+            ->setField('sort_order')
+            ->setDirection(SortOrder::SORT_ASC)
+            ->create();
+        $searchCriteria = $this->searchCriteriaBuilder
+            ->addFilter('attribute_set_id', $attributeSetId)
+            ->addSortOrder($sortOrder)
+            ->create();
+        return $this->attributeRepository->getList($entityTypeCode, $searchCriteria)->getItems();
     }
 }
