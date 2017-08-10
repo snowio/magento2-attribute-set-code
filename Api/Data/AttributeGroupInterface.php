@@ -24,7 +24,7 @@ interface AttributeGroupInterface
     public function getSortOrder();
 
     /**
-     * @return string[]|null
+     * @return \SnowIO\AttributeSetCode\Api\Data\AttributeInterface[]|null
      */
     public function getAttributes();
 
@@ -47,7 +47,7 @@ interface AttributeGroupInterface
     public function setSortOrder($sortOrder);
 
     /**
-     * @param string[] $attributes
+     * @param \SnowIO\AttributeSetCode\Api\Data\AttributeInterface[] $attributes
      * @return \SnowIO\AttributeSetCode\Api\Data\AttributeGroupInterface
      */
     public function setAttributes($attributes);
