@@ -224,7 +224,7 @@ class AttributeSetRepositoryTest extends TestCase
         $objectManager = ObjectManager::getInstance();
         /** @var CodedAttributeSetRepository $attributeSetRepository */
         $attributeSetRepository = $objectManager->get(CodedAttributeSetRepository::class);
-        $attributeSetRepository->save($attributeSet);
+        self::assertNull($attributeSetRepository->save($attributeSet));
     }
 
     private static function assertAttributeSetCorrectInDb(AttributeSetInterface $expected)
