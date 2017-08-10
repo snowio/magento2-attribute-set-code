@@ -139,7 +139,6 @@ class AttributeSetRepository implements CodedAttributeSetRepositoryInterface
             }
 
             $connection->commit();
-            return $this->attributeSetRepository->get($attributeSetId);
         } catch (\Throwable $e) {
             $connection->rollBack();
             throw $e;
