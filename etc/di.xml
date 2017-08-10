@@ -2,10 +2,10 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
     <preference for="SnowIO\AttributeSetCode\Api\AttributeSetRepositoryInterface" type="SnowIO\AttributeSetCode\Model\AttributeSetRepository" />
     <preference for="SnowIO\AttributeSetCode\Api\Data\AttributeGroupInterface" type="SnowIO\AttributeSetCode\Model\AttributeGroup" />
+    <preference for="SnowIO\AttributeSetCode\Api\Data\AttributeInterface" type="SnowIO\AttributeSetCode\Model\Attribute" />
     <preference for="SnowIO\AttributeSetCode\Api\Data\AttributeSetInterface" type="SnowIO\AttributeSetCode\Model\AttributeSet" />
 
     <type name="Magento\Catalog\Api\ProductRepositoryInterface">
         <plugin name="ProductRepositoryPlugin" type="SnowIO\AttributeSetCode\Plugin\ProductRepositoryPlugin" disabled="false" />
     </type>
-
 </config>

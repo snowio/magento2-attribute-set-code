@@ -2,13 +2,14 @@
 namespace SnowIO\AttributeSetCode\Test\Integration\Model;
 
 use Magento\Eav\Api\AttributeGroupRepositoryInterface;
-use Magento\Eav\Api\AttributeRepositoryInterface;
 use Magento\Eav\Api\AttributeSetRepositoryInterface;
 use Magento\Eav\Api\Data\AttributeInterface;
+use Magento\Eav\Model\ResourceModel\Entity\Attribute\Collection as AttributeCollection;
+use Magento\Eav\Model\ResourceModel\Entity\Attribute\CollectionFactory as AttributeCollectionFactory;
+use SnowIO\AttributeSetCode\Api\Data\AttributeInterface as SnowIOAttributeInterface;
 use Magento\Eav\Model\Entity\Attribute\Group;
 use Magento\Eav\Model\Entity\Type;
 use Magento\Framework\Api\SearchCriteriaBuilder;
-use Magento\Framework\Api\SortOrder;
 use Magento\Framework\App\ObjectManager;
 use SnowIO\AttributeSetCode\Api\AttributeSetRepositoryInterface as CodedAttributeSetRepository;
 use SnowIO\AttributeSetCode\Api\Data\AttributeGroupInterface;
@@ -110,7 +111,11 @@ class AttributeSetRepositoryTest extends TestCase
                 $this->createAttributeGroup()
                     ->setAttributeGroupCode('my-test-attribute-group-1')
                     ->setName('My Test Attribute Group 1')
-                    ->setAttributes(['sku', 'color', 'cost']),
+                    ->setAttributes([
+                        $this->createAttribute()->setAttributeCode('sku')->setSortOrder(20),
+                        $this->createAttribute()->setAttributeCode('color')->setSortOrder(100),
+                        $this->createAttribute()->setAttributeCode('cost')->setSortOrder(6)
+                    ]),
                 $this->createAttributeGroup()
                     ->setAttributeGroupCode('my-test-attribute-group-2')
                     ->setName('My Test Attribute Group 2')
@@ -135,11 +140,16 @@ class AttributeSetRepositoryTest extends TestCase
                 $this->createAttributeGroup()
                     ->setAttributeGroupCode('my-test-attribute-group-1')
                     ->setSortOrder(5)
-                    ->setAttributes(['sku', 'color']),
+                    ->setAttributes([
+                        $this->createAttribute()->setAttributeCode('sku')->setSortOrder(20),
+                        $this->createAttribute()->setAttributeCode('color')->setSortOrder(100)
+                    ]),
                 $this->createAttributeGroup()
                     ->setAttributeGroupCode('my-test-attribute-group-2')
                     ->setName('My Test Attribute Group 2 - renamed!')
-                    ->setAttributes(['cost'])
+                    ->setAttributes([
+                        $this->createAttribute()->setAttributeCode('cost')->setSortOrder(6)
+                    ])
             ]);
         $this->saveAttributeSet($partialAttributeSetData2);
 
@@ -154,7 +164,10 @@ class AttributeSetRepositoryTest extends TestCase
                 $this->createAttributeGroup()
                     ->setAttributeGroupCode('my-test-attribute-group-1')
                     ->setSortOrder(5)
-                    ->setAttributes(['sku', 'color'])
+                    ->setAttributes([
+                        $this->createAttribute()->setAttributeCode('sku')->setSortOrder(20),
+                        $this->createAttribute()->setAttributeCode('color')->setSortOrder(100)
+                    ])
             ]);
         $this->saveAttributeSet($partialAttributeSetData3);
 
@@ -177,7 +190,9 @@ class AttributeSetRepositoryTest extends TestCase
                 ->setAttributeGroupCode('my-test-attribute-group-1')
                 ->setName('My Test Attribute Group 1 - renamed')
                 ->setSortOrder(5)
-                ->setAttributes(['sku', 'color']),
+                ->setAttributes([
+                    $this->createAttribute()->setAttributeCode('sku')->setSortOrder(20),
+                    $this->createAttribute()->setAttributeCode('color')->setSortOrder(100)]),
         ]);
         self::assertAttributeSetCorrectInDb($fullAttributeSetData);
     }
@@ -190,6 +205,11 @@ class AttributeSetRepositoryTest extends TestCase
     private function createAttributeGroup(): AttributeGroupInterface
     {
         return ObjectManager::getInstance()->create(AttributeGroupInterface::class);
+    }
+
+    private function createAttribute(): SnowIOAttributeInterface
+    {
+        return ObjectManager::getInstance()->create(SnowIOAttributeInterface::class);
     }
 
     private function saveNewAttributeSetAndCheckDb(AttributeSetInterface $attributeSet)
@@ -230,31 +250,34 @@ class AttributeSetRepositoryTest extends TestCase
         $expectedAttributeGroups = $expected->getAttributeGroups() ?? [];
         $expectedAttributeGroups = self::ignoreSystemAttributesFromExpectedGroups($expected->getEntityTypeCode(), $expectedAttributeGroups);
         $expectedAttributeGroups = self::addSystemAttributesToExpectedGroups($expected->getEntityTypeCode(), $expectedAttributeGroups);
-        self::assertAttributeGroupsAsExpected($expected->getEntityTypeCode(), $expectedAttributeGroups, $actual->getAttributeSetId());
+        self::assertAttributeGroupsAsExpected($expectedAttributeGroups, $actual->getAttributeSetId());
     }
 
     private static function ignoreSystemAttributesFromExpectedGroups(string $entityTypeCode, array $expectedGroups): array
     {
         /** @var EntityTypeCodeRepository $entityTypeCodeRepository */
         $defaultAttributeSetId = self::getDefaultAttributeSetId($entityTypeCode);
-        /** @var AttributeGroupRepositoryInterface $attributeGroupRepository */
-        $defaultAttributeSetGroups = self::getAttributeGroups($defaultAttributeSetId);
-        /** @var Group $defaultAttributeSetGroup */
-        $attributesInDefaultAttributeSet = self::getAttributesByAttributeSet($entityTypeCode, $defaultAttributeSetId);
-        $systemAttributesInDefaultAttributeSet = \array_filter($attributesInDefaultAttributeSet,
-            function (AttributeInterface $attribute) {
-                return !$attribute->getIsUserDefined();
-            });
-        $systemAttributeCodesInDefaultAttributeSet = \array_map(function (AttributeInterface $attribute) {
-            return $attribute->getAttributeCode();
-        }, $systemAttributesInDefaultAttributeSet);
+        $systemAttributesInDefaultAttributeSet = [];
+        foreach (self::getAttributeGroups($defaultAttributeSetId) as $actualGroup) {
+            $attributeGroupId = $actualGroup->getAttributeGroupId();
+            $attributes = self::getAttributesByGroup($attributeGroupId);
+            foreach ($attributes as $attribute) {
+                if (!$attribute->getIsUserDefined()) {
+                    $systemAttributesInDefaultAttributeSet[] = self::convertEavAttribute($attribute, $attributeGroupId);
+                }
+            }
+        }
         /** @var AttributeGroupInterface $expectedGroup */
         foreach ($expectedGroups as $expectedGroup) {
             $expectedGroupAttributes = $expectedGroup->getAttributes();
             if ($expectedGroupAttributes === null) {
                 continue;
             }
-            $nonSystemAttributes = \array_diff($expectedGroupAttributes, $systemAttributeCodesInDefaultAttributeSet);
+            $nonSystemAttributes = \array_udiff($expectedGroupAttributes, $systemAttributesInDefaultAttributeSet,
+                function (SnowIOAttributeInterface $a, SnowIOAttributeInterface $b) {
+                    return strcmp($a->getAttributeCode(), $b->getAttributeCode());
+                }
+            );
             $expectedGroup->setAttributes($nonSystemAttributes);
         }
 
@@ -279,15 +302,16 @@ class AttributeSetRepositoryTest extends TestCase
         $defaultAttributeSetId = $entityTypeCodeRepository->getDefaultAttributeSetId($entityTypeCode);
         $defaultAttributeGroups = self::getAttributeGroups($defaultAttributeSetId);
         foreach ($defaultAttributeGroups as $attributeGroup) {
-            $attributes = self::getAttributesByGroup($entityTypeCode, $attributeGroup->getAttributeGroupId());
+            $attributeGroupId = $attributeGroup->getAttributeGroupId();
+            $attributes = self::getAttributesByGroup($attributeGroupId);
             $systemAttributes = \array_filter($attributes, function (AttributeInterface $attribute) {
                 return !$attribute->getIsUserDefined();
             });
             if (empty($systemAttributes)) {
                 continue;
             }
-            $systemAttributeCodes = \array_map(function (AttributeInterface $attribute) {
-                return $attribute->getAttributeCode();
+            $systemAttributes = \array_map(function (AttributeInterface $attribute) use ($attributeGroupId) {
+                return self::convertEavAttribute($attribute, $attributeGroupId);
             }, $systemAttributes);
 
             $attributeGroupCode = $attributeGroup->getAttributeGroupCode();
@@ -299,38 +323,47 @@ class AttributeSetRepositoryTest extends TestCase
                     ->setAttributeGroupCode($attributeGroupCode)
                     ->setAttributeGroupSortOrder($attributeGroup->getSortOrder())
                     ->setName($attributeGroup->getAttributeGroupName())
-                    ->setAttributes($systemAttributeCodes);
+                    ->setAttributes($systemAttributes);
             } else {
-                $attributeCodes = \array_merge($expectedGroups[$attributeGroupCode]->getAttributes(), $systemAttributeCodes);
-                $expectedGroups[$attributeGroupCode]->setAttributes(\array_unique($attributeCodes));
+                $attributes = \array_merge($expectedGroups[$attributeGroupCode]->getAttributes(), $systemAttributes);
+                $expectedGroups[$attributeGroupCode]->setAttributes($attributes);
             }
         }
 
         return $expectedGroups;
     }
 
-    private static function assertAttributeGroupsAsExpected(string $entityTypeCode, array $expectedGroups, string $actualAttributeSetId)
+    private static function convertEavAttribute(AttributeInterface $attribute, int $attributeGroupId) : SnowIOAttributeInterface
     {
-        $expectedGroupsByCode = [];
-        foreach ($expectedGroups as $expectedGroup) {
-            $expectedGroupsByCode[$expectedGroup->getAttributeGroupCode()] = $expectedGroup;
+        foreach ($attribute->getAttributeSetInfo() as $attributeSetInfo) {
+            if ($attributeSetInfo['group_id'] == $attributeGroupId) {
+                return ObjectManager::getInstance()->create(SnowIOAttributeInterface::class)
+                    ->setAttributeCode($attribute->getAttributeCode())
+                    ->setSortOrder($attributeSetInfo['sort']);
+            }
         }
 
+        throw new \RuntimeException();
+    }
+
+    private static function assertAttributeGroupsAsExpected(array $expectedGroups, string $actualAttributeSetId)
+    {
         $actualGroupsByCode = self::getAttributeGroups($actualAttributeSetId);
 
         self::assertSameSize(
-            $expectedGroupsByCode,
+            $expectedGroups,
             $actualGroupsByCode,
             \sprintf('Attribute set should have %s groups but actually has %s groups.', \count($expectedGroups), \count($actualGroupsByCode))
         );
 
-        foreach ($expectedGroupsByCode as $groupCode => $expectedGroup) {
+        foreach ($expectedGroups as $groupCode => $expectedGroup) {
+            $groupCode = $expectedGroup->getAttributeGroupCode();
             self::assertArrayHasKey($groupCode, $actualGroupsByCode, "Attribute set is missing group $groupCode.");
-            self::assertAttributeGroupAsExpected($entityTypeCode, $expectedGroup, $actualGroupsByCode[$groupCode]);
+            self::assertAttributeGroupAsExpected($expectedGroup, $actualGroupsByCode[$groupCode]);
         }
     }
 
-    private static function assertAttributeGroupAsExpected(string $entityTypeCode, AttributeGroupInterface $expected, Group $actual)
+    private static function assertAttributeGroupAsExpected(AttributeGroupInterface $expected, Group $actual)
     {
         self::assertSame($expected->getName(), $actual->getAttributeGroupName());
         self::assertSame($expected->getAttributeGroupCode(), $actual->getAttributeGroupCode());
@@ -339,16 +372,34 @@ class AttributeSetRepositoryTest extends TestCase
             self::assertSame($expected->getSortOrder(), (int)$actual->getSortOrder());
         }
 
-        $expectedAttributeCodes = $expected->getAttributes() ?? [];
-        $actualAttributes = self::getAttributesByGroup($entityTypeCode, $actual->getAttributeGroupId());
-        self::assertSameSize($expectedAttributeCodes, $actualAttributes);
-        $actualAttributeCodes = \array_map(function (AttributeInterface $attribute) {
-            return $attribute->getAttributeCode();
-        }, $actualAttributes);
-        // asort() here until sort orders are handled correctly for system attributes
-        \asort($expectedAttributeCodes);
-        \asort($actualAttributeCodes);
-        self::assertSame(\array_values($expectedAttributeCodes), \array_values($actualAttributeCodes));
+        self::assertAttributesAsExpected($expected->getAttributes() ?? [], $actual->getAttributeGroupId());
+    }
+
+    /**
+     * @param SnowIOAttributeInterface[] $expectedAttributes
+     */
+    private static function assertAttributesAsExpected(array $expectedAttributes, string $actualAttributeGroupId)
+    {
+        $actualAttributes = self::getAttributesByGroup($actualAttributeGroupId);
+
+        self::assertSameSize(
+            $expectedAttributes,
+            $actualAttributes,
+            \sprintf('Attribute group should have %s attributes but actually has %s attributes.', \count($expectedAttributes), \count($actualAttributes))
+        );
+
+        $actualAttributesByCode = [];
+        foreach ($actualAttributes as $actualAttribute) {
+            $actualAttributesByCode[$actualAttribute->getAttributeCode()] = $actualAttribute;
+        }
+
+        foreach ($expectedAttributes as $expectedAttribute) {
+            $attributeCode = $expectedAttribute->getAttributeCode();
+            self::assertArrayHasKey($attributeCode, $actualAttributesByCode, "Attribute group is missing attribute $attributeCode.");
+            if ($expectedAttribute->getSortOrder() !== null) {
+                self::assertEquals($expectedAttribute->getSortOrder(), $actualAttributesByCode[$attributeCode]->getSortOrder());
+            }
+        }
     }
 
     /**
@@ -376,32 +427,13 @@ class AttributeSetRepositoryTest extends TestCase
     /**
      * @return AttributeInterface[]
      */
-    private static function getAttributesByGroup(string $entityTypeCode, int $attributeGroupId): array
+    private static function getAttributesByGroup(int $attributeGroupId): array
     {
-        $objectManager = ObjectManager::getInstance();
-        /** @var AttributeRepositoryInterface $attributeRepository */
-        $attributeRepository = $objectManager->get(AttributeRepositoryInterface::class);
-
-        $searchCriteria = $objectManager->create(SearchCriteriaBuilder::class)
-            ->addFilter('attribute_group_id', $attributeGroupId)
-            ->addSortOrder((new SortOrder())->setField('sort_order')->setDirection(SortOrder::SORT_ASC))
-            ->create();
-
-        return $attributeRepository->getList($entityTypeCode, $searchCriteria)->getItems();
-    }
-
-    private static function getAttributesByAttributeSet(string $entityTypeCode, int $attributeSetId): array
-    {
-        $objectManager = ObjectManager::getInstance();
-        /** @var AttributeRepositoryInterface $attributeRepository */
-        $attributeRepository = $objectManager->get(AttributeRepositoryInterface::class);
-
-        $searchCriteria = $objectManager->create(SearchCriteriaBuilder::class)
-            ->addFilter('attribute_set_id', $attributeSetId)
-            ->addSortOrder((new SortOrder())->setField('sort_order')->setDirection(SortOrder::SORT_ASC))
-            ->create();
-
-        return $attributeRepository->getList($entityTypeCode, $searchCriteria)->getItems();
+        /** @var AttributeCollection $attributeCollection */
+        $attributeCollection = ObjectManager::getInstance()->get(AttributeCollectionFactory::class)->create();
+        $attributeCollection->setAttributeGroupFilter($attributeGroupId);
+        $attributeCollection->addSetInfo();
+        return $attributeCollection->getItems();
     }
 
     private static function removeAttributeSet(AttributeSetInterface $attributeSet)
