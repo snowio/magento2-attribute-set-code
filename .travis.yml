@@ -21,7 +21,7 @@ env:
     - MAGENTO_VERSION=develop
     - MAGENTO_VERSION=2.0
     - MAGENTO_VERSION=2.1-develop
-    - MAGENTO_VERSION=2.1
+    - MAGENTO_VERSION=2.1 CODE_COVERAGE=1
     - MAGENTO_VERSION=2.1.3
     - MAGENTO_VERSION=2.1.7
     - MAGENTO_VERSION=2.2.0-preview
@@ -37,16 +37,16 @@ matrix:
     - php: 7.1
       env: MAGENTO_VERSION=2.1-develop
     - php: 7.1
-      env: MAGENTO_VERSION=2.1
+      env: MAGENTO_VERSION=2.1 CODE_COVERAGE=1
     - php: 7.1
       env: MAGENTO_VERSION=2.1.3
     - php: 7.1
       env: MAGENTO_VERSION=2.1.7
 cache:
   apt: true
-  directories:
-    - $HOME/.composer/cache
+  directories: $HOME/.composer/cache
 before_install: ./travis/before_install.sh
 install: ./travis/install.sh
 before_script: ./travis/before_script.sh
-script: phpunit -c $HOME/build/magento2ce/dev/tests/integration/phpunit.xml.dist $TRAVIS_BUILD_DIR/Test/Integration
+script: phpunit -c $HOME/build/magento2ce/dev/tests/integration/phpunit.xml.dist --testsuite Integration
+after_success: ./travis/after_success.sh
