@@ -23,6 +23,7 @@ env:
     - MAGENTO_VERSION=2.1
     - MAGENTO_VERSION=2.1.7
     - MAGENTO_VERSION=2.2-develop
+    - MAGENTO_VERSION=2.2
     - MAGENTO_VERSION=2.2 CODE_COVERAGE=1
     - MAGENTO_VERSION=2.3-develop
 matrix:
@@ -38,6 +39,10 @@ matrix:
       env: MAGENTO_VERSION=2.1
     - php: 7.1
       env: MAGENTO_VERSION=2.1.7
+    - php: 7.0
+      env: MAGENTO_VERSION=2.2 CODE_COVERAGE=1
+    - php: 7.1
+      env: MAGENTO_VERSION=2.2
 cache:
   apt: true
   directories: $HOME/.composer/cache
