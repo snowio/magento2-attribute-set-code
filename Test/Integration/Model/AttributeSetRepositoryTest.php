@@ -24,7 +24,7 @@ class AttributeSetRepositoryTest extends TestCase
     {
         $attributeSetData = $this->createAttributeSet()
             ->setEntityTypeCode('catalog_product')
-            ->setAttributeSetCode('my-test-attribute-set-1')
+            ->setAttributeSetCode('test-attribute-set-1')
             ->setName('My Test Attribute Set 1')
             ->setSortOrder(50);
 
@@ -35,7 +35,7 @@ class AttributeSetRepositoryTest extends TestCase
     {
         $attributeSetData = $this->createAttributeSet()
             ->setEntityTypeCode('catalog_product')
-            ->setAttributeSetCode('my-test-attribute-set-1')
+            ->setAttributeSetCode('test-attribute-set-1')
             ->setName('My Test Attribute Set 1')
             ->setSortOrder(50)
             ->setAttributeGroups([]);
@@ -47,15 +47,15 @@ class AttributeSetRepositoryTest extends TestCase
     {
         $attributeSetData = $this->createAttributeSet()
             ->setEntityTypeCode('catalog_product')
-            ->setAttributeSetCode('my-test-attribute-set-1')
+            ->setAttributeSetCode('test-attribute-set-1')
             ->setName('My Test Attribute Set 1')
             ->setSortOrder(50)
             ->setAttributeGroups([
                 $this->createAttributeGroup()
-                    ->setAttributeGroupCode('my-test-attribute-group-1')
+                    ->setAttributeGroupCode('test-attribute-group-1')
                     ->setName('My Test Attribute Group 1'),
                 $this->createAttributeGroup()
-                    ->setAttributeGroupCode('my-test-attribute-group-2')
+                    ->setAttributeGroupCode('test-attribute-group-2')
                     ->setName('My Test Attribute Group 2')
             ]);
 
@@ -66,16 +66,16 @@ class AttributeSetRepositoryTest extends TestCase
     {
         $attributeSetData = $this->createAttributeSet()
             ->setEntityTypeCode('catalog_product')
-            ->setAttributeSetCode('my-test-attribute-set-1')
+            ->setAttributeSetCode('test-attribute-set-1')
             ->setName('My Test Attribute Set 1')
             ->setSortOrder(50)
             ->setAttributeGroups([
                 $this->createAttributeGroup()
-                    ->setAttributeGroupCode('my-test-attribute-group-1')
+                    ->setAttributeGroupCode('test-attribute-group-1')
                     ->setName('My Test Attribute Group 1')
                     ->setAttributes([]),
                 $this->createAttributeGroup()
-                    ->setAttributeGroupCode('my-test-attribute-group-2')
+                    ->setAttributeGroupCode('test-attribute-group-2')
                     ->setName('My Test Attribute Group 2')
                     ->setAttributes([])
             ]);
@@ -87,13 +87,13 @@ class AttributeSetRepositoryTest extends TestCase
     {
         $productAttributeSet = $this->createAttributeSet()
             ->setEntityTypeCode('catalog_product')
-            ->setAttributeSetCode('my-test-attribute-set')
+            ->setAttributeSetCode('test-attribute-set')
             ->setName('My Test Product Attribute Set');
         $this->saveNewAttributeSetAndCheckDb($productAttributeSet);
 
         $categoryAttributeSet = $this->createAttributeSet()
             ->setEntityTypeCode('catalog_category')
-            ->setAttributeSetCode('my-test-attribute-set')
+            ->setAttributeSetCode('test-attribute-set')
             ->setName('My Test Category Attribute Set');
         $this->saveNewAttributeSetAndCheckDb($categoryAttributeSet);
 
@@ -104,12 +104,12 @@ class AttributeSetRepositoryTest extends TestCase
     {
         $fullAttributeSetData = $this->createAttributeSet()
             ->setEntityTypeCode('catalog_product')
-            ->setAttributeSetCode('my-test-attribute-set-1')
+            ->setAttributeSetCode('test-attribute-set-1')
             ->setName('My Test Attribute Set 1')
             ->setSortOrder(50)
             ->setAttributeGroups([
                 $this->createAttributeGroup()
-                    ->setAttributeGroupCode('my-test-attribute-group-1')
+                    ->setAttributeGroupCode('test-attribute-group-1')
                     ->setName('My Test Attribute Group 1')
                     ->setAttributes([
                         $this->createAttribute()->setAttributeCode('sku')->setSortOrder(20),
@@ -117,7 +117,7 @@ class AttributeSetRepositoryTest extends TestCase
                         $this->createAttribute()->setAttributeCode('cost')->setSortOrder(6)
                     ]),
                 $this->createAttributeGroup()
-                    ->setAttributeGroupCode('my-test-attribute-group-2')
+                    ->setAttributeGroupCode('test-attribute-group-2')
                     ->setName('My Test Attribute Group 2')
                     ->setAttributes([])
             ]);
@@ -138,14 +138,14 @@ class AttributeSetRepositoryTest extends TestCase
             ->setAttributeSetCode($fullAttributeSetData->getAttributeSetCode())
             ->setAttributeGroups([
                 $this->createAttributeGroup()
-                    ->setAttributeGroupCode('my-test-attribute-group-1')
+                    ->setAttributeGroupCode('test-attribute-group-1')
                     ->setSortOrder(5)
                     ->setAttributes([
                         $this->createAttribute()->setAttributeCode('sku')->setSortOrder(20),
                         $this->createAttribute()->setAttributeCode('color')->setSortOrder(100)
                     ]),
                 $this->createAttributeGroup()
-                    ->setAttributeGroupCode('my-test-attribute-group-2')
+                    ->setAttributeGroupCode('test-attribute-group-2')
                     ->setName('My Test Attribute Group 2 - renamed!')
                     ->setAttributes([
                         $this->createAttribute()->setAttributeCode('cost')->setSortOrder(6)
@@ -162,7 +162,7 @@ class AttributeSetRepositoryTest extends TestCase
             ->setAttributeSetCode($fullAttributeSetData->getAttributeSetCode())
             ->setAttributeGroups([
                 $this->createAttributeGroup()
-                    ->setAttributeGroupCode('my-test-attribute-group-1')
+                    ->setAttributeGroupCode('test-attribute-group-1')
                     ->setSortOrder(5)
                     ->setAttributes([
                         $this->createAttribute()->setAttributeCode('sku')->setSortOrder(20),
@@ -180,14 +180,14 @@ class AttributeSetRepositoryTest extends TestCase
             ->setAttributeSetCode($fullAttributeSetData->getAttributeSetCode())
             ->setAttributeGroups([
                 $this->createAttributeGroup()
-                    ->setAttributeGroupCode('my-test-attribute-group-1')
+                    ->setAttributeGroupCode('test-attribute-group-1')
                     ->setName('My Test Attribute Group 1 - renamed')
             ]);
         $this->saveAttributeSet($partialAttributeSetData4);
 
         $fullAttributeSetData->setAttributeGroups([
             $this->createAttributeGroup()
-                ->setAttributeGroupCode('my-test-attribute-group-1')
+                ->setAttributeGroupCode('test-attribute-group-1')
                 ->setName('My Test Attribute Group 1 - renamed')
                 ->setSortOrder(5)
                 ->setAttributes([

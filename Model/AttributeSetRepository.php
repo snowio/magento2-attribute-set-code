@@ -149,6 +149,7 @@ class AttributeSetRepository implements CodedAttributeSetRepositoryInterface
     {
         /** @var \Magento\Eav\Api\Data\AttributeGroupInterface $_attributeGroup */
         $_attributeGroup = $this->attributeGroupFactory->create();
+        $_attributeGroup->setAttributeGroupCode($attributeGroup->getAttributeGroupCode());
         if (($name = $attributeGroup->getName()) !== null) {
             $_attributeGroup->setAttributeGroupName($name);
         }
