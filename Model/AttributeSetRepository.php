@@ -105,6 +105,7 @@ class AttributeSetRepository implements CodedAttributeSetRepositoryInterface
                 //input attribute group code is a map that contains attribute group code -> attribute group id
                 $existingAttributeGroupIds = $this->attributeGroupCodeRepository->getAttributeGroupIds($attributeSetId);
                 $attributeGroupIdsToRemove = array_diff($existingAttributeGroupIds, $inputAttributeGroupIdsThatAlreadyExist);
+                $this->removeNonSystemAttributesAndEmptyGroups($attributeSet->getEntityTypeCode(), $attributeSetId, $attributeGroupIdsToRemove);
 
                 foreach ($inputAttributeGroupCodeToIdMap as $attributeGroupCode => $attributeGroupData) {
                     $attributeGroupId = $attributeGroupData['id'];
@@ -131,8 +132,6 @@ class AttributeSetRepository implements CodedAttributeSetRepositoryInterface
                         $attributeSetId,
                         $attributeGroupId);
                 }
-
-                $this->removeNonSystemAttributesAndEmptyGroups($attributeSet->getEntityTypeCode(), $attributeSetId, $attributeGroupIdsToRemove);
             } elseif ($isNewAttributeSet) {
                 $defaultAttributeGroupIds = $this->attributeGroupCodeRepository->getAttributeGroupIds($attributeSetId);
                 $this->removeNonSystemAttributesAndEmptyGroups($attributeSet->getEntityTypeCode(), $attributeSetId, $defaultAttributeGroupIds);

@@ -100,6 +100,53 @@ class AttributeSetRepositoryTest extends TestCase
         self::assertAttributeSetCorrectInDb($productAttributeSet);
     }
 
+    public function testChangeGroupCode()
+    {
+        $fullAttributeSetData1 = $this->createAttributeSet()
+            ->setEntityTypeCode('catalog_product')
+            ->setAttributeSetCode('test-attribute-set-1')
+            ->setName('My Test Attribute Set 1')
+            ->setSortOrder(50)
+            ->setAttributeGroups([
+                $this->createAttributeGroup()
+                    ->setAttributeGroupCode('test-attribute-group-1')
+                    ->setName('My Test Attribute Group 1')
+                    ->setAttributes([
+                        $this->createAttribute()->setAttributeCode('sku')->setSortOrder(20),
+                        $this->createAttribute()->setAttributeCode('color')->setSortOrder(100),
+                        $this->createAttribute()->setAttributeCode('cost')->setSortOrder(6)
+                    ]),
+                $this->createAttributeGroup()
+                    ->setAttributeGroupCode('test-attribute-group-2')
+                    ->setName('My Test Attribute Group 2')
+                    ->setAttributes([])
+            ]);
+        $this->saveNewAttributeSetAndCheckDb($fullAttributeSetData1);
+
+        $fullAttributeSetData2 = $this->createAttributeSet()
+            ->setEntityTypeCode('catalog_product')
+            ->setAttributeSetCode('test-attribute-set-1')
+            ->setName('My Test Attribute Set 1')
+            ->setSortOrder(50)
+            ->setAttributeGroups([
+                $this->createAttributeGroup()
+                    ->setAttributeGroupCode('test-attribute-group-1')
+                    ->setName('My Test Attribute Group 1')
+                    ->setAttributes([
+                        $this->createAttribute()->setAttributeCode('sku')->setSortOrder(20),
+                        $this->createAttribute()->setAttributeCode('color')->setSortOrder(100),
+                        $this->createAttribute()->setAttributeCode('cost')->setSortOrder(6)
+                    ]),
+                $this->createAttributeGroup()
+                    ->setAttributeGroupCode('my-test-attribute-group-2')
+                    ->setName('My Test Attribute Group 2')
+                    ->setAttributes([])
+            ]);
+        $this->saveAttributeSet($fullAttributeSetData2);
+
+        self::assertAttributeSetCorrectInDb($fullAttributeSetData2);
+    }
+
     public function testCreateAttributeSetWithNonEmptyGroup()
     {
         $fullAttributeSetData = $this->createAttributeSet()
