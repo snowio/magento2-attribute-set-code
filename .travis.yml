@@ -18,7 +18,6 @@ env:
     - COMPOSER_BIN_DIR=~/bin
     - MAGENTO_HOST_NAME="magento2.travis"
   matrix:
-    - MAGENTO_VERSION=develop
     - MAGENTO_VERSION=2.1-develop
     - MAGENTO_VERSION=2.1
     - MAGENTO_VERSION=2.1.7
@@ -28,7 +27,6 @@ env:
     - MAGENTO_VERSION=2.3-develop
 matrix:
   allow_failures:
-    - env: MAGENTO_VERSION=develop
     - env: MAGENTO_VERSION=2.1-develop
     - env: MAGENTO_VERSION=2.2-develop
     - env: MAGENTO_VERSION=2.3-develop
