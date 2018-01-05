@@ -1,11 +1,24 @@
 <?php
 namespace SnowIO\AttributeSetCode\Test\Integration\Model;
 
+use Magento\Catalog\Api\Data\ProductInterface;
+use Magento\Catalog\Api\ProductRepositoryInterface;
+use Magento\Catalog\Model\Product\Attribute\Source\Status;
+use Magento\Catalog\Model\Product\Visibility;
+use Magento\Catalog\Model\Product\Type as ProductType;
+use Magento\ConfigurableProduct\Api\Data\OptionInterface;
+use Magento\ConfigurableProduct\Api\Data\OptionInterfaceFactory;
+use Magento\ConfigurableProduct\Api\Data\OptionValueInterface;
+use Magento\ConfigurableProduct\Api\Data\OptionValueInterfaceFactory;
 use Magento\Eav\Api\AttributeGroupRepositoryInterface;
+use Magento\Eav\Api\AttributeRepositoryInterface;
 use Magento\Eav\Api\AttributeSetRepositoryInterface;
 use Magento\Eav\Api\Data\AttributeInterface;
+use Magento\Eav\Api\Data\AttributeInterfaceFactory;
+use Magento\Eav\Model\Config;
 use Magento\Eav\Model\ResourceModel\Entity\Attribute\Collection as AttributeCollection;
 use Magento\Eav\Model\ResourceModel\Entity\Attribute\CollectionFactory as AttributeCollectionFactory;
+use Magento\Framework\Exception\StateException;
 use SnowIO\AttributeSetCode\Api\Data\AttributeInterface as SnowIOAttributeInterface;
 use Magento\Eav\Model\Entity\Attribute\Group;
 use Magento\Eav\Model\Entity\Type;
@@ -242,6 +255,239 @@ class AttributeSetRepositoryTest extends TestCase
                     $this->createAttribute()->setAttributeCode('color')->setSortOrder(100)]),
         ]);
         self::assertAttributeSetCorrectInDb($fullAttributeSetData);
+    }
+
+    public function testRecreateAttributeGroupWithAssociatedConfigurableProduct()
+    {
+        $fullAttributeSetData = $this->createAttributeSet()
+            ->setEntityTypeCode('catalog_product')
+            ->setAttributeSetCode('configurable-product-attribute-set')
+            ->setName('My Test Attribute Set 1')
+            ->setSortOrder(50)
+            ->setAttributeGroups([
+                $this->createAttributeGroup()
+                    ->setAttributeGroupCode('test-attribute-group-1')
+                    ->setName('My Test Attribute Group 1')
+                    ->setAttributes([
+                        $this->createAttribute()->setAttributeCode('sku')->setSortOrder(20),
+                        $this->createAttribute()->setAttributeCode('color')->setSortOrder(100),
+                        $this->createAttribute()->setAttributeCode('cost')->setSortOrder(6),
+                    ]),
+            ]);
+
+        $this->saveNewAttributeSetAndCheckDb($fullAttributeSetData);
+
+        $configurableProduct = self::getConfigurableProductData(__METHOD__, ['color']);
+        $extensionAttributes = $configurableProduct->getExtensionAttributes();
+        $extensionAttributes->setAttributeSetCode($fullAttributeSetData->getAttributeSetCode());
+        $configurableProduct->setExtensionAttributes($extensionAttributes);
+        self::saveNewProduct($configurableProduct);
+
+        $fullAttributeSetData2 = $this->createAttributeSet()
+            ->setEntityTypeCode('catalog_product')
+            ->setAttributeSetCode('configurable-product-attribute-set')
+            ->setName('My Test Attribute Set 1')
+            ->setSortOrder(50)
+            ->setAttributeGroups([
+                $this->createAttributeGroup()
+                    ->setAttributeGroupCode('test-attribute-group-2')
+                    ->setName('My Test Attribute Group 2')
+                    ->setAttributes([
+                        $this->createAttribute()->setAttributeCode('sku')->setSortOrder(20),
+                        $this->createAttribute()->setAttributeCode('color')->setSortOrder(100),
+                    ]),
+            ]);
+
+        $this->saveAttributeSet($fullAttributeSetData2);
+        self::assertAttributeSetCorrectInDb($fullAttributeSetData2);
+    }
+
+    public function testMoveAttributesToNewGroupWithAssociatedConfigurableProduct()
+    {
+        self::saveNewSizeAttribute();
+
+        $fullAttributeSetData = $this->createAttributeSet()
+            ->setEntityTypeCode('catalog_product')
+            ->setAttributeSetCode('configurable-product-attribute-set')
+            ->setName('My Test Attribute Set 1')
+            ->setSortOrder(50)
+            ->setAttributeGroups([
+                $this->createAttributeGroup()
+                    ->setAttributeGroupCode('test-attribute-group-1')
+                    ->setName('My Test Attribute Group 1')
+                    ->setAttributes([
+                        $this->createAttribute()->setAttributeCode('sku')->setSortOrder(20),
+                        $this->createAttribute()->setAttributeCode('color')->setSortOrder(100),
+                    ]),
+                $this->createAttributeGroup()
+                    ->setAttributeGroupCode('test-attribute-group-2')
+                    ->setName('My Test Attribute Group 2')
+                    ->setAttributes([
+                        $this->createAttribute()->setAttributeCode('size')->setSortOrder(100),
+                    ]),
+            ]);
+
+        $this->saveNewAttributeSetAndCheckDb($fullAttributeSetData);
+
+        $configurableProduct = self::getConfigurableProductData(__METHOD__, ['color', 'size']);
+        $extensionAttributes = $configurableProduct->getExtensionAttributes();
+        $extensionAttributes->setAttributeSetCode($fullAttributeSetData->getAttributeSetCode());
+        $configurableProduct->setExtensionAttributes($extensionAttributes);
+        self::saveNewProduct($configurableProduct);
+
+        $fullAttributeSetData2 = $this->createAttributeSet()
+            ->setEntityTypeCode('catalog_product')
+            ->setAttributeSetCode('configurable-product-attribute-set')
+            ->setName('My Test Attribute Set 1')
+            ->setSortOrder(50)
+            ->setAttributeGroups([
+                $this->createAttributeGroup()
+                    ->setAttributeGroupCode('test-attribute-group-1')
+                    ->setName('My Test Attribute Group 1')
+                    ->setAttributes([
+                        $this->createAttribute()->setAttributeCode('sku')->setSortOrder(20),
+                        $this->createAttribute()->setAttributeCode('size')->setSortOrder(100),
+                    ]),
+                $this->createAttributeGroup()
+                    ->setAttributeGroupCode('test-attribute-group-2')
+                    ->setName('My Test Attribute Group 2')
+                    ->setAttributes([
+                        $this->createAttribute()->setAttributeCode('color')->setSortOrder(100),
+                    ]),
+            ]);
+
+        $this->saveAttributeSet($fullAttributeSetData2);
+        self::assertAttributeSetCorrectInDb($fullAttributeSetData2);
+    }
+
+    public function testConfigurableAttributesArePreserved()
+    {
+        $fullAttributeSetData = $this->createAttributeSet()
+            ->setEntityTypeCode('catalog_product')
+            ->setAttributeSetCode('configurable-product-attribute-set')
+            ->setName('My Test Attribute Set 1')
+            ->setSortOrder(50)
+            ->setAttributeGroups([
+                $this->createAttributeGroup()
+                    ->setAttributeGroupCode('test-attribute-group-1')
+                    ->setName('My Test Attribute Group 1')
+                    ->setAttributes([
+                        $this->createAttribute()->setAttributeCode('sku')->setSortOrder(20),
+                        $this->createAttribute()->setAttributeCode('color')->setSortOrder(100),
+                        $this->createAttribute()->setAttributeCode('cost')->setSortOrder(6),
+                    ]),
+            ]);
+
+        $this->saveNewAttributeSetAndCheckDb($fullAttributeSetData);
+
+        $configurableProduct = self::getConfigurableProductData(__METHOD__, ['color']);
+        $extensionAttributes = $configurableProduct->getExtensionAttributes();
+        $extensionAttributes->setAttributeSetCode($fullAttributeSetData->getAttributeSetCode());
+        $configurableProduct->setExtensionAttributes($extensionAttributes);
+        self::saveNewProduct($configurableProduct);
+
+        $fullAttributeSetData2 = $this->createAttributeSet()
+            ->setEntityTypeCode('catalog_product')
+            ->setAttributeSetCode('configurable-product-attribute-set')
+            ->setName('My Test Attribute Set 1')
+            ->setSortOrder(50)
+            ->setAttributeGroups([
+                $this->createAttributeGroup()
+                    ->setAttributeGroupCode('test-attribute-group-1')
+                    ->setName('My Test Attribute Group 1')
+                    ->setAttributes([
+                        $this->createAttribute()->setAttributeCode('sku')->setSortOrder(20),
+                    ]),
+            ]);
+
+        $this->saveAttributeSet($fullAttributeSetData2);
+
+        $expectedResult = $this->createAttributeSet()
+            ->setEntityTypeCode('catalog_product')
+            ->setAttributeSetCode('configurable-product-attribute-set')
+            ->setName('My Test Attribute Set 1')
+            ->setSortOrder(50)
+            ->setAttributeGroups([
+                $this->createAttributeGroup()
+                    ->setAttributeGroupCode('test-attribute-group-1')
+                    ->setName('My Test Attribute Group 1')
+                    ->setAttributes([
+                        $this->createAttribute()->setAttributeCode('sku')->setSortOrder(20),
+                        $this->createAttribute()->setAttributeCode('color')->setSortOrder(100),
+                    ]),
+            ]);
+
+        self::assertAttributeSetCorrectInDb($expectedResult);
+    }
+
+    public function testDeletedGroupsContainingConfigurableAttributesArePreserved()
+    {
+        $fullAttributeSetData = $this->createAttributeSet()
+            ->setEntityTypeCode('catalog_product')
+            ->setAttributeSetCode('configurable-product-attribute-set')
+            ->setName('My Test Attribute Set 1')
+            ->setSortOrder(50)
+            ->setAttributeGroups([
+                $this->createAttributeGroup()
+                    ->setAttributeGroupCode('test-attribute-group-1')
+                    ->setName('My Test Attribute Group 1')
+                    ->setAttributes([
+                        $this->createAttribute()->setAttributeCode('sku')->setSortOrder(20),
+                    ]),
+                $this->createAttributeGroup()
+                    ->setAttributeGroupCode('test-attribute-group-2')
+                    ->setName('My Test Attribute Group 2')
+                    ->setAttributes([
+                        $this->createAttribute()->setAttributeCode('color')->setSortOrder(100),
+                        $this->createAttribute()->setAttributeCode('cost')->setSortOrder(6),
+                    ]),
+            ]);
+
+        $this->saveNewAttributeSetAndCheckDb($fullAttributeSetData);
+
+        $configurableProduct = self::getConfigurableProductData(__METHOD__, ['color']);
+        $extensionAttributes = $configurableProduct->getExtensionAttributes();
+        $extensionAttributes->setAttributeSetCode($fullAttributeSetData->getAttributeSetCode());
+        $configurableProduct->setExtensionAttributes($extensionAttributes);
+        self::saveNewProduct($configurableProduct);
+
+        $fullAttributeSetData2 = $this->createAttributeSet()
+            ->setEntityTypeCode('catalog_product')
+            ->setAttributeSetCode('configurable-product-attribute-set')
+            ->setName('My Test Attribute Set 1')
+            ->setSortOrder(50)
+            ->setAttributeGroups([
+                $this->createAttributeGroup()
+                    ->setAttributeGroupCode('test-attribute-group-1')
+                    ->setName('My Test Attribute Group 1')
+                    ->setAttributes([
+                        $this->createAttribute()->setAttributeCode('sku')->setSortOrder(20),
+                    ]),
+            ]);
+
+        $this->saveAttributeSet($fullAttributeSetData2);
+
+        $expectedResult = $this->createAttributeSet()
+            ->setEntityTypeCode('catalog_product')
+            ->setAttributeSetCode('configurable-product-attribute-set')
+            ->setName('My Test Attribute Set 1')
+            ->setSortOrder(50)
+            ->setAttributeGroups([
+                $this->createAttributeGroup()
+                    ->setAttributeGroupCode('test-attribute-group-1')
+                    ->setName('My Test Attribute Group 1')
+                    ->setAttributes([
+                        $this->createAttribute()->setAttributeCode('sku')->setSortOrder(20),
+                    ]),
+                $this->createAttributeGroup()
+                    ->setAttributeGroupCode('test-attribute-group-2')
+                    ->setName('My Test Attribute Group 2')
+                    ->setAttributes([
+                        $this->createAttribute()->setAttributeCode('color')->setSortOrder(100),
+                    ]),
+            ]);
+
+        self::assertAttributeSetCorrectInDb($expectedResult);
     }
 
     private function createAttributeSet(): AttributeSetInterface
@@ -512,5 +758,102 @@ class AttributeSetRepositoryTest extends TestCase
         /** @var EntityTypeCodeRepository $entityTypeCodeRepository */
         $entityTypeCodeRepository = $objectManager->get(EntityTypeCodeRepository::class);
         return $entityTypeCodeRepository->getDefaultAttributeSetId($entityTypeCode);
+    }
+
+    private static function getConfigurableProductData(string $name, array $configurableAttributes): ProductInterface
+    {
+        /** @var ProductInterface $product */
+        $product = ObjectManager::getInstance()->create(ProductInterface::class);
+        $product
+            ->setSku('test-product-1')
+            ->setPrice(3.00)
+            ->setStatus(Status::STATUS_ENABLED)
+            ->setName($name)
+            ->setVisibility(Visibility::VISIBILITY_BOTH)
+            ->setTypeId('configurable');
+        $configurableProductOptions = self::createConfigurableProductOptions($configurableAttributes);
+        $extensionAttributes = $product->getExtensionAttributes();
+        $extensionAttributes->setConfigurableProductOptions($configurableProductOptions);
+        $product->setExtensionAttributes($extensionAttributes);
+        return $product;
+    }
+
+    private static function createConfigurableProductOptions(array $attributeCodes): array
+    {
+        $optionFactory = ObjectManager::getInstance()->get(OptionInterfaceFactory::class);
+        /** @var OptionValueInterface $optionValue */
+        $optionValue = ObjectManager::getInstance()->get(OptionValueInterfaceFactory::class)->create();
+        $optionValue->setValueIndex(1);
+        return \array_map(
+            function (string $attributeCode) use ($optionFactory, $optionValue) {
+                $attributeId = self::getAttributeId($attributeCode);
+                /** @var OptionInterface $option */
+                $option = $optionFactory->create();
+                $option->setAttributeId($attributeId);
+                $option->setLabel($attributeCode);
+                $option->setValues([$optionValue]);
+                return $option;
+            },
+            $attributeCodes
+        );
+    }
+
+    private static function getAttributeId(string $attributeCode)
+    {
+        /** @var AttributeRepositoryInterface $attributeRepository */
+        $attributeRepository = ObjectManager::getInstance()->get(AttributeRepositoryInterface::class);
+        $attribute = $attributeRepository->get('catalog_product', $attributeCode);
+        return $attribute->getAttributeId();
+    }
+
+    private static function saveNewProduct(ProductInterface $product)
+    {
+        /** @var ProductRepositoryInterface $productRepository */
+        $productRepository = ObjectManager::getInstance()->get(ProductRepositoryInterface::class);
+        try {
+            $productRepository->delete($product);
+        } catch (StateException $e) {
+
+        }
+        $productRepository->save($product);
+    }
+
+    private static function saveNewSizeAttribute()
+    {
+        /** @var $attribute \Magento\Catalog\Model\ResourceModel\Eav\Attribute */
+        $attribute = ObjectManager::getInstance()->create(\Magento\Catalog\Model\ResourceModel\Eav\Attribute::class);
+
+        /** @var AttributeRepositoryInterface $attributeRepository */
+        $attributeRepository = ObjectManager::getInstance()->get(AttributeRepositoryInterface::class);
+
+        $attribute->setData(
+            [
+                'attribute_code' => 'size',
+                'entity_type_id' => 4,
+                'is_global' => 1,
+                'is_user_defined' => 1,
+                'frontend_input' => 'select',
+                'is_unique' => 0,
+                'is_required' => 0,
+                'is_searchable' => 0,
+                'is_visible_in_advanced_search' => 0,
+                'is_comparable' => 0,
+                'is_filterable' => 0,
+                'is_filterable_in_search' => 0,
+                'is_used_for_promo_rules' => 0,
+                'is_html_allowed_on_front' => 1,
+                'is_visible_on_front' => 0,
+                'used_in_product_listing' => 0,
+                'used_for_sort_by' => 0,
+                'frontend_label' => ['Size'],
+                'backend_type' => 'int',
+                'option' => [
+                    'value' => ['option_0' => ['Option 1'], 'option_1' => ['Option 2']],
+                    'order' => ['option_0' => 1, 'option_1' => 2],
+                ],
+            ]
+        );
+
+        $attributeRepository->save($attribute);
     }
 }
