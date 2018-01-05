@@ -9,6 +9,7 @@ use Magento\Catalog\Model\Product\Visibility;
 use Magento\Framework\Api\ExtensionAttributesFactory;
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\StateException;
 use Magento\Framework\ObjectManagerInterface;
 use SnowIO\AttributeSetCode\Api\AttributeSetRepositoryInterface;
 use SnowIO\AttributeSetCode\Model\AttributeSetCodeRepository;
@@ -40,12 +41,12 @@ class ProductRepositoryPluginTest extends TestCase
 
     public function testAttributeSetCodeThatExists()
     {
-        $product = $this->getProductData();
+        $product = $this->getProductData(__METHOD__);
         $product->setExtensionAttributes(
             $this->extensionAttributeRepositoryFactory->create(ProductInterface::class)
                 ->setAttributeSetCode(self::ATTRIBUTE_SET_CODE)
         );
-        $this->productRepository->save($product);
+        $this->saveNewProduct($product);
 
         $loadedProduct = $this->productRepository->get($product->getSku());
         self::assertNotSame($product, $loadedProduct);
@@ -54,13 +55,13 @@ class ProductRepositoryPluginTest extends TestCase
 
     public function testAttributeSetCodeThatDoesNotExist()
     {
-        $product = $this->getProductData();
+        $product = $this->getProductData(__METHOD__);
         $product->setExtensionAttributes(
             $this->extensionAttributeRepositoryFactory->create(ProductInterface::class)
                 ->setAttributeSetCode($nonExistentAttributeSetCode = 'non-existent-attribute-set')
         );
         try {
-            $this->productRepository->save($product);
+            $this->saveNewProduct($product);
             self::fail('Expected exception was not thrown');
         } catch (LocalizedException $e) {
             $expectedMessage = "The specified attribute set code $nonExistentAttributeSetCode does not exist";
@@ -70,19 +71,19 @@ class ProductRepositoryPluginTest extends TestCase
 
     public function testAttributeSetId()
     {
-        $product = $this->getProductData()->setAttributeSetId($this->attributeSetId);
-        $this->productRepository->save($product);
+        $product = $this->getProductData(__METHOD__)->setAttributeSetId($this->attributeSetId);
+        $this->saveNewProduct($product);
     }
 
     public function testBothAttributeSetIdAndAttributeSetCodeSpecified()
     {
-        $product = $this->getProductData();
+        $product = $this->getProductData(__METHOD__);
         $product->setAttributeSetId($this->attributeSetId);
         $product->setExtensionAttributes(
             $this->extensionAttributeRepositoryFactory->create(ProductInterface::class)
                 ->setAttributeSetCode('non-existent-attribute-set-code')
         );
-        $this->productRepository->save($product);
+        $this->saveNewProduct($product);
         $loadedProduct = $this->productRepository->get($product->getSku());
         self::assertEquals($this->attributeSetId, $loadedProduct->getAttributeSetId());
     }
@@ -106,13 +107,23 @@ class ProductRepositoryPluginTest extends TestCase
         $attributeSetRepository->save($attributeSet);
     }
 
-    private function getProductData(): ProductInterface
+    private function saveNewProduct(ProductInterface $product)
+    {
+        try {
+            $this->productRepository->delete($product);
+        } catch (StateException $e) {
+
+        }
+        $this->productRepository->save($product);
+    }
+
+    private function getProductData(string $name): ProductInterface
     {
         return ObjectManager::getInstance()->create(ProductInterface::class)
             ->setSku('test-product-1')
             ->setPrice(3.00)
             ->setStatus(Status::STATUS_ENABLED)
-            ->setName('Test product 1')
+            ->setName($name)
             ->setVisibility(Visibility::VISIBILITY_BOTH)
             ->setTypeId(Type::TYPE_SIMPLE);
     }
