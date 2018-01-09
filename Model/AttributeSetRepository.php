@@ -238,6 +238,7 @@ class AttributeSetRepository implements CodedAttributeSetRepositoryInterface
             $_attributeSet->setSortOrder($sortOrder);
         }
 
+        $_attributeSet->unsetData('groups');
         $this->attributeSetRepository->save($_attributeSet);
     }
 
@@ -253,6 +254,7 @@ class AttributeSetRepository implements CodedAttributeSetRepositoryInterface
             $_attributeGroup->setAttributeGroupName($name);
         }
 
+        $_attributeGroup->unsetData('attributes');
         $this->attributeGroupRepository->save($_attributeGroup);
     }
 
