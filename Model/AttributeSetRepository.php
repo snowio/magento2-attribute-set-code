@@ -2,7 +2,6 @@
 
 namespace SnowIO\AttributeSetCode\Model;
 
-use Magento\Eav\Api\AttributeSetManagementInterface;
 use Magento\Eav\Api\AttributeSetRepositoryInterface;
 use Magento\Eav\Api\AttributeGroupRepositoryInterface;
 use Magento\Eav\Api\AttributeManagementInterface;
@@ -10,6 +9,9 @@ use Magento\Eav\Api\AttributeRepositoryInterface;
 use Magento\Eav\Api\Data\AttributeGroupInterfaceFactory;
 use Magento\Eav\Api\Data\AttributeInterface;
 use Magento\Eav\Api\Data\AttributeSetInterfaceFactory;
+use Magento\Eav\Model\Entity\Attribute;
+use Magento\Eav\Model\Entity\Attribute\Group;
+use Magento\Eav\Model\Entity\Attribute\Set;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Api\SortOrder;
 use Magento\Framework\Api\SortOrderBuilder;
@@ -23,7 +25,6 @@ class AttributeSetRepository implements CodedAttributeSetRepositoryInterface
     private $attributeSetCodeRepository;
     private $attributeGroupCodeRepository;
     private $attributeGroupRepository;
-    private $attributeSetManagement;
     /** @var AttributeSetInterfaceFactory */
     private $attributeSetFactory;
     private $attributeGroupFactory;
@@ -39,7 +40,6 @@ class AttributeSetRepository implements CodedAttributeSetRepositoryInterface
         AttributeGroupCodeRepository $attributeGroupCodeRepository,
         AttributeSetCodeRepository $attributeSetCodeRepository,
         AttributeGroupRepositoryInterface $attributeGroupRepository,
-        AttributeSetManagementInterface $attributeSetManagement,
         AttributeSetInterfaceFactory $attributeSetFactory,
         AttributeGroupInterfaceFactory $attributeGroupFactory,
         AttributeManagementInterface $attributeManagement,
@@ -53,7 +53,6 @@ class AttributeSetRepository implements CodedAttributeSetRepositoryInterface
         $this->attributeGroupCodeRepository = $attributeGroupCodeRepository;
         $this->attributeSetCodeRepository = $attributeSetCodeRepository;
         $this->attributeGroupRepository = $attributeGroupRepository;
-        $this->attributeSetManagement = $attributeSetManagement;
         $this->attributeSetFactory = $attributeSetFactory;
         $this->attributeGroupFactory = $attributeGroupFactory;
         $this->attributeSetRepository = $attributeSetRepository;
@@ -187,14 +186,41 @@ class AttributeSetRepository implements CodedAttributeSetRepositoryInterface
     ) : int {
         $attributeSetCode = $attributeSet->getAttributeSetCode();
         $defaultAttributeSetId = $this->entityTypeCodeRepository->getDefaultAttributeSetId($attributeSet->getEntityTypeCode());
+        /** @var Set $_attributeSet */
         $_attributeSet = $this->attributeSetFactory->create()
             ->setId(null)
             ->setEntityTypeId($entityTypeId)
             ->setAttributeSetName($attributeSet->getName())
             ->setSortOrder($attributeSet->getSortOrder());
-        $_attributeSet = $this->attributeSetManagement->create($attributeSet->getEntityTypeCode(), $_attributeSet, $defaultAttributeSetId);
+        $_attributeSet->initFromSkeleton($defaultAttributeSetId);
+        $attributesPerGroup = [];
+        /** @var Group $group */
+        foreach ($_attributeSet->getData('groups') as $group) {
+            $attributesPerGroup[$group->getAttributeGroupCode()] = $group->getData('attributes');
+            $group->unsetData('attributes');
+        }
+        $this->attributeSetRepository->save($_attributeSet);
         $this->attributeSetCodeRepository->setAttributeSetCode($_attributeSet->getAttributeSetId(), $attributeSetCode);
-        return $_attributeSet->getAttributeSetId();
+        $attributeSetId = $_attributeSet->getAttributeSetId();
+        $attributeGroupIds = [];
+        /** @var Group $group */
+        foreach ($_attributeSet->getData('groups') as $group) {
+            $attributeGroupIds[$group->getAttributeGroupCode()] = $group->getAttributeGroupId();
+        }
+        /** @var Attribute[] $attributes */
+        foreach ($attributesPerGroup as $groupCode => $attributes) {
+            $attributeGroupId = $attributeGroupIds[$groupCode];
+            foreach ($attributes as $attribute) {
+                $this->attributeManagement->assign(
+                    $attributeSet->getEntityTypeCode(),
+                    $attributeSetId,
+                    $attributeGroupId,
+                    $attribute->getAttributeCode(),
+                    $attribute->getSortOrder()
+                );
+            }
+        }
+        return $attributeSetId;
     }
 
     private function assignAttributesInGroup(
