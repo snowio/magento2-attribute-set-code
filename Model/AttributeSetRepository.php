@@ -215,7 +215,7 @@ class AttributeSetRepository implements CodedAttributeSetRepositoryInterface
                     $attributeSet->getEntityTypeCode(),
                     $attributeSetId,
                     $attributeGroupId,
-                    $attribute->getAttributeCode(),
+                    $attribute->getId(),
                     $attribute->getSortOrder()
                 );
             }
