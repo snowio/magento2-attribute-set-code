@@ -1,5 +1,5 @@
 sudo: required
-dist: trusty
+dist: xenial
 group: edge
 addons:
   apt:
@@ -13,6 +13,7 @@ language: php
 php:
   - 7.0
   - 7.1
+  - 7.2
 env:
   global:
     - COMPOSER_BIN_DIR=~/bin
@@ -24,6 +25,7 @@ env:
     - MAGENTO_VERSION=2.2
     - MAGENTO_VERSION=2.2 CODE_COVERAGE=1
     - MAGENTO_VERSION=2.3-develop
+    - MAGENTO_VERSION=2.3 CODE_COVERAGE=1
 matrix:
   allow_failures:
     - env: MAGENTO_VERSION=2.1-develop
@@ -38,6 +40,10 @@ matrix:
       env: MAGENTO_VERSION=2.2 CODE_COVERAGE=1
     - php: 7.1
       env: MAGENTO_VERSION=2.2
+    - php: 7.1
+      env: MAGENTO_VERSION=2.3
+    - php: 7.2
+      env: MAGENTO_VERSION=2.3 CODE_COVERAGE=1
 cache:
   apt: true
   directories: $HOME/.composer/cache
