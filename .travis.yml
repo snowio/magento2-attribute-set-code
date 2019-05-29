@@ -23,7 +23,6 @@ env:
     - MAGENTO_VERSION=2.1
     - MAGENTO_VERSION=2.2-develop
     - MAGENTO_VERSION=2.2
-    - MAGENTO_VERSION=2.2 CODE_COVERAGE=1
     - MAGENTO_VERSION=2.3-develop
     - MAGENTO_VERSION=2.3 CODE_COVERAGE=1
 matrix:
@@ -32,17 +31,17 @@ matrix:
     - env: MAGENTO_VERSION=2.2-develop
     - env: MAGENTO_VERSION=2.3-develop
   exclude:
-    - php: 7.1
-      env: MAGENTO_VERSION=2.1-develop
-    - php: 7.1
-      env: MAGENTO_VERSION=2.1
-    - php: 7.0
-      env: MAGENTO_VERSION=2.2 CODE_COVERAGE=1
-    - php: 7.1
-      env: MAGENTO_VERSION=2.2
-    - php: 7.1
-      env: MAGENTO_VERSION=2.3
     - php: 7.2
+      env: MAGENTO_VERSION=2.1-develop
+    - php: 7.2
+      env: MAGENTO_VERSION=2.1
+    - php: 7.2
+      env: MAGENTO_VERSION=2.2-develop
+    - php: 7.2
+      env: MAGENTO_VERSION=2.2
+    - php: 7.0
+      env: MAGENTO_VERSION=2.3-develop
+    - php: 7.0
       env: MAGENTO_VERSION=2.3 CODE_COVERAGE=1
 cache:
   apt: true
