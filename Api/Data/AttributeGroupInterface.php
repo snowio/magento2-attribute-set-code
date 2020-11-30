@@ -3,10 +3,10 @@ namespace SnowIO\AttributeSetCode\Api\Data;
 
 interface AttributeGroupInterface
 {
-    const ATTRIBUTE_GROUP_CODE = 'attribute_group_code';
-    const NAME = 'name';
-    const SORT_ORDER = 'sort_order';
-    const ATTRIBUTES = 'attributes';
+    public const ATTRIBUTE_GROUP_CODE = 'attribute_group_code';
+    public const NAME = 'name';
+    public const SORT_ORDER = 'sort_order';
+    public const ATTRIBUTES = 'attributes';
 
     /**
      * @return string|null

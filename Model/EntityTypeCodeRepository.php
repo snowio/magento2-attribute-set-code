@@ -5,7 +5,7 @@ use Magento\Eav\Model\Entity\TypeFactory;
 
 class EntityTypeCodeRepository
 {
-    private $entityTypeFactory;
+    private \Magento\Eav\Model\Entity\TypeFactory $entityTypeFactory;
 
     public function __construct(TypeFactory $entityTypeFactory)
     {

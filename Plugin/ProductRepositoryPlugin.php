@@ -8,7 +8,7 @@ use Magento\Framework\Phrase;
 
 class ProductRepositoryPlugin
 {
-    private $attributeSetCodeRepository;
+    private \SnowIO\AttributeSetCode\Model\AttributeSetCodeRepository $attributeSetCodeRepository;
 
     public function __construct(\SnowIO\AttributeSetCode\Model\AttributeSetCodeRepository $attributeSetCodeRepository)
     {

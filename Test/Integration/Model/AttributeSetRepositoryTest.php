@@ -548,7 +548,6 @@ class AttributeSetRepositoryTest extends TestCase
 
     private static function ignoreSystemAttributesFromExpectedGroups(string $entityTypeCode, array $expectedGroups): array
     {
-        /** @var EntityTypeCodeRepository $entityTypeCodeRepository */
         $defaultAttributeSetId = self::getDefaultAttributeSetId($entityTypeCode);
         $systemAttributesInDefaultAttributeSet = [];
         foreach (self::getAttributeGroups($defaultAttributeSetId) as $actualGroup) {
@@ -567,9 +566,7 @@ class AttributeSetRepositoryTest extends TestCase
                 continue;
             }
             $nonSystemAttributes = \array_udiff($expectedGroupAttributes, $systemAttributesInDefaultAttributeSet,
-                function (SnowIOAttributeInterface $a, SnowIOAttributeInterface $b) {
-                    return strcmp($a->getAttributeCode(), $b->getAttributeCode());
-                }
+                fn(SnowIOAttributeInterface $a, SnowIOAttributeInterface $b) => strcmp($a->getAttributeCode(), $b->getAttributeCode())
             );
             $expectedGroup->setAttributes($nonSystemAttributes);
         }
@@ -587,9 +584,7 @@ class AttributeSetRepositoryTest extends TestCase
         /** @var EntityTypeCodeRepository $entityTypeCodeRepository */
         $entityTypeCodeRepository = $objectManager->get(EntityTypeCodeRepository::class);
 
-        $expectedGroupCodes = \array_map(function (AttributeGroupInterface $group) {
-            return $group->getAttributeGroupCode();
-        }, $expectedGroups);
+        $expectedGroupCodes = \array_map(fn(AttributeGroupInterface $group) => $group->getAttributeGroupCode(), $expectedGroups);
         $expectedGroups = \array_combine($expectedGroupCodes, $expectedGroups);
 
         $defaultAttributeSetId = $entityTypeCodeRepository->getDefaultAttributeSetId($entityTypeCode);
@@ -597,15 +592,11 @@ class AttributeSetRepositoryTest extends TestCase
         foreach ($defaultAttributeGroups as $attributeGroup) {
             $attributeGroupId = $attributeGroup->getAttributeGroupId();
             $attributes = self::getAttributesByGroup($attributeGroupId);
-            $systemAttributes = \array_filter($attributes, function (AttributeInterface $attribute) {
-                return !$attribute->getIsUserDefined();
-            });
+            $systemAttributes = \array_filter($attributes, fn(AttributeInterface $attribute) => !$attribute->getIsUserDefined());
             if (empty($systemAttributes)) {
                 continue;
             }
-            $systemAttributes = \array_map(function (AttributeInterface $attribute) use ($attributeGroupId) {
-                return self::convertEavAttribute($attribute, $attributeGroupId);
-            }, $systemAttributes);
+            $systemAttributes = \array_map(fn(AttributeInterface $attribute) => self::convertEavAttribute($attribute, $attributeGroupId), $systemAttributes);
 
             $attributeGroupCode = $attributeGroup->getAttributeGroupCode();
             //check if the group is in the expected attribute group
