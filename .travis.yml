@@ -14,7 +14,7 @@ services:
   - elasticsearch
 language: php
 php:
-  - 7.4-gd
+  - 7.4
 env:
   global:
     - COMPOSER_BIN_DIR=~/bin
