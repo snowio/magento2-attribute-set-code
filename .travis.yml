@@ -1,20 +1,13 @@
-sudo: required
-dist: trusty
-group: edge
+language: php
+php: 7.4
+dist: xenial
+
 addons:
-  apt:
-    packages:
-      - mysql-server-8.0
-      - mysql-client-core-8.0
-      - mysql-client-8.0
   hosts:
       - magento2.travis
 services:
   - rabbitmq
   - elasticsearch
-language: php
-php:
-  - 7.4
 env:
   global:
     - COMPOSER_BIN_DIR=~/bin
