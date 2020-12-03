@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+composer self-update 1.10.16
 cd ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d
 mv xdebug.ini xdebug.ini.bak
 echo 'memory_limit = -1' >> travis.ini
