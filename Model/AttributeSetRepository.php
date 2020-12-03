@@ -23,18 +23,18 @@ use SnowIO\AttributeSetCode\Api\AttributeSetRepositoryInterface as CodedAttribut
 
 class AttributeSetRepository implements CodedAttributeSetRepositoryInterface
 {
-    private \SnowIO\AttributeSetCode\Model\AttributeSetCodeRepository $attributeSetCodeRepository;
-    private \SnowIO\AttributeSetCode\Model\AttributeGroupCodeRepository $attributeGroupCodeRepository;
-    private \Magento\Eav\Api\AttributeGroupRepositoryInterface $attributeGroupRepository;
-    private \Magento\Eav\Api\Data\AttributeSetInterfaceFactory $attributeSetFactory;
-    private \Magento\Eav\Api\Data\AttributeGroupInterfaceFactory $attributeGroupFactory;
-    private \Magento\Eav\Api\AttributeManagementInterface $attributeManagement;
-    private \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder;
-    private \Magento\Eav\Api\AttributeRepositoryInterface $attributeRepository;
-    private \Magento\Framework\App\ResourceConnection $resourceConnection;
-    private \SnowIO\AttributeSetCode\Model\EntityTypeCodeRepository $entityTypeCodeRepository;
-    private \Magento\Eav\Api\AttributeSetRepositoryInterface $attributeSetRepository;
-    private \Magento\Framework\Api\SortOrderBuilder $sortOrderBuilder;
+    private AttributeSetCodeRepository $attributeSetCodeRepository;
+    private AttributeGroupCodeRepository $attributeGroupCodeRepository;
+    private AttributeGroupRepositoryInterface $attributeGroupRepository;
+    private AttributeSetInterfaceFactory $attributeSetFactory;
+    private AttributeGroupInterfaceFactory $attributeGroupFactory;
+    private AttributeManagementInterface $attributeManagement;
+    private SearchCriteriaBuilder $searchCriteriaBuilder;
+    private AttributeRepositoryInterface $attributeRepository;
+    private ResourceConnection $resourceConnection;
+    private EntityTypeCodeRepository $entityTypeCodeRepository;
+    private AttributeSetRepositoryInterface $attributeSetRepository;
+    private SortOrderBuilder $sortOrderBuilder;
 
     public function __construct(
         AttributeGroupCodeRepository $attributeGroupCodeRepository,
