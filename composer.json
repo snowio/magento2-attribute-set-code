@@ -11,8 +11,7 @@
     "require": {
         "php": "^7.4",
         "magento/framework": "^103",
-        "magento/module-eav": "^102",
-        "composer/composer": "^1.10.10"
+        "magento/module-eav": "^102"
     },
     "require-dev": {
         "phpunit/phpunit": "^9.1.5",
