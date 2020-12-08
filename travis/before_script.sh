@@ -8,7 +8,7 @@ mysql -uroot -e '
 '
 
 cd $HOME/build/magento2ce/dev/tests/integration
-cp etc/install-config-mysql.travis.php.dist etc/install-config-mysql.php
+cp etc/install-config-mysql.php.dist etc/install-config-mysql.php
 
 php $TRAVIS_BUILD_DIR/travis/prepare_phpunit_config.php
 
