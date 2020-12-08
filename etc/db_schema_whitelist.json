@@ -1,0 +1,12 @@
+{
+    "attribute_set_code": {
+        "column": {
+            "attribute_set_id": true,
+            "attribute_set_code": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "ATTR_SET_CODE_ATTR_SET_ID_EAV_ATTR_SET_ATTR_SET_ID": true
+        }
+    }
+}

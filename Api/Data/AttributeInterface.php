@@ -3,8 +3,8 @@ namespace SnowIO\AttributeSetCode\Api\Data;
 
 interface AttributeInterface
 {
-    const ATTRIBUTE_CODE = 'attribute_code';
-    const SORT_ORDER = 'sort_order';
+    public const ATTRIBUTE_CODE = 'attribute_code';
+    public const SORT_ORDER = 'sort_order';
 
     /**
      * @return string|null

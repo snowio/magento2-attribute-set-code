@@ -7,8 +7,8 @@ use Magento\Framework\DB\Adapter\AdapterInterface;
 
 class AttributeSetCodeRepository
 {
-    private $resourceConnection;
-    private $dbAdapter;
+    private ResourceConnection $resourceConnection;
+    private AdapterInterface $dbAdapter;
 
     public function __construct(ResourceConnection $resourceConnection, AdapterInterface $dbAdapter = null)
     {

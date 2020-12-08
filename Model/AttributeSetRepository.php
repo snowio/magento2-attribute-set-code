@@ -23,19 +23,18 @@ use SnowIO\AttributeSetCode\Api\AttributeSetRepositoryInterface as CodedAttribut
 
 class AttributeSetRepository implements CodedAttributeSetRepositoryInterface
 {
-    private $attributeSetCodeRepository;
-    private $attributeGroupCodeRepository;
-    private $attributeGroupRepository;
-    /** @var AttributeSetInterfaceFactory */
-    private $attributeSetFactory;
-    private $attributeGroupFactory;
-    private $attributeManagement;
-    private $searchCriteriaBuilder;
-    private $attributeRepository;
-    private $resourceConnection;
-    private $entityTypeCodeRepository;
-    private $attributeSetRepository;
-    private $sortOrderBuilder;
+    private AttributeSetCodeRepository $attributeSetCodeRepository;
+    private AttributeGroupCodeRepository $attributeGroupCodeRepository;
+    private AttributeGroupRepositoryInterface $attributeGroupRepository;
+    private AttributeSetInterfaceFactory $attributeSetFactory;
+    private AttributeGroupInterfaceFactory $attributeGroupFactory;
+    private AttributeManagementInterface $attributeManagement;
+    private SearchCriteriaBuilder $searchCriteriaBuilder;
+    private AttributeRepositoryInterface $attributeRepository;
+    private ResourceConnection $resourceConnection;
+    private EntityTypeCodeRepository $entityTypeCodeRepository;
+    private AttributeSetRepositoryInterface $attributeSetRepository;
+    private SortOrderBuilder $sortOrderBuilder;
 
     public function __construct(
         AttributeGroupCodeRepository $attributeGroupCodeRepository,
@@ -119,7 +118,7 @@ class AttributeSetRepository implements CodedAttributeSetRepositoryInterface
                         $attributeGroupId);
                 }
 
-                foreach ($inputAttributeGroupsWithIds as $attributeGroupCode => $attributeGroupData) {
+                foreach ($inputAttributeGroupsWithIds as $attributeGroupData) {
                     $attributeGroupId = $attributeGroupData['id'];
                     /** @var AttributeGroupInterface $inputAttributeGroup */
                     $inputAttributeGroup = $attributeGroupData['group'];
@@ -130,9 +129,7 @@ class AttributeSetRepository implements CodedAttributeSetRepositoryInterface
                     if ($inputAttributes === null) {
                         continue;
                     }
-                    $inputAttributeCodes = \array_map(function (\SnowIO\AttributeSetCode\Api\Data\AttributeInterface $attribute) {
-                        return $attribute->getAttributeCode();
-                    }, $inputAttributes);
+                    $inputAttributeCodes = \array_map(fn(\SnowIO\AttributeSetCode\Api\Data\AttributeInterface $attribute) => $attribute->getAttributeCode(), $inputAttributes);
                     $attributesAlreadyInGroup = $this->getAttributes($attributeGroupId, $attributeSet->getEntityTypeCode());
                     foreach ($attributesAlreadyInGroup as $attribute) {
                         if (!\in_array($attribute->getAttributeCode(), $inputAttributeCodes)) {
@@ -143,7 +140,7 @@ class AttributeSetRepository implements CodedAttributeSetRepositoryInterface
 
                 $this->removeNonSystemAttributesAndEmptyGroups($attributeSet->getEntityTypeCode(), $attributeSetId, $attributeGroupIdsToRemove);
 
-                foreach ($inputAttributeGroupsWithIds as $attributeGroupCode => $attributeGroupData) {
+                foreach ($inputAttributeGroupsWithIds as $attributeGroupData) {
                     /** @var AttributeGroupInterface $inputAttributeGroup */
                     $inputAttributeGroup = $attributeGroupData['group'];
                     if ($inputAttributeGroup->getName() !== null) {
@@ -151,7 +148,7 @@ class AttributeSetRepository implements CodedAttributeSetRepositoryInterface
                     }
                 }
 
-                foreach ($inputAttributeGroupsWithIds as $attributeGroupCode => $attributeGroupData) {
+                foreach ($inputAttributeGroupsWithIds as $attributeGroupData) {
                     $attributeGroupId = $attributeGroupData['id'];
                     /** @var AttributeGroupInterface $inputAttributeGroup */
                     $inputAttributeGroup = $attributeGroupData['group'];
@@ -304,21 +301,15 @@ class AttributeSetRepository implements CodedAttributeSetRepositoryInterface
     {
         $defaultAttributeSetId = $this->entityTypeCodeRepository->getDefaultAttributeSetId($entityTypeCode);
         $attributesInDefaultAttributeSet = $this->getAttributesByAttributeSet($entityTypeCode, $defaultAttributeSetId);
-        $systemAttributes = \array_filter($attributesInDefaultAttributeSet, function (AttributeInterface $attribute)  {
-            return !$attribute->getIsUserDefined();
-        });
-        $systemAttributeCodes = \array_map(function (AttributeInterface $attribute) {
-            return $attribute->getAttributeCode();
-        }, $systemAttributes);
+        $systemAttributes = \array_filter($attributesInDefaultAttributeSet, fn(AttributeInterface $attribute) => !$attribute->getIsUserDefined());
+        $systemAttributeCodes = \array_map(fn(AttributeInterface $attribute) => $attribute->getAttributeCode(), $systemAttributes);
         /** @var AttributeGroupInterface  $attributeGroup */
         foreach ($inputAttributeGroups as $attributeGroup) {
             $attributes = $attributeGroup->getAttributes();
             if ($attributes === null) {
                 continue;
             }
-            $nonSystemAttributes = \array_filter($attributes, function (\SnowIO\AttributeSetCode\Api\Data\AttributeInterface $attribute) use ($systemAttributeCodes) {
-                return !\in_array($attribute->getAttributeCode(), $systemAttributeCodes);
-            });
+            $nonSystemAttributes = \array_filter($attributes, fn(\SnowIO\AttributeSetCode\Api\Data\AttributeInterface $attribute) => !\in_array($attribute->getAttributeCode(), $systemAttributeCodes));
             $attributeGroup->setAttributes($nonSystemAttributes);
         }
         return $inputAttributeGroups;

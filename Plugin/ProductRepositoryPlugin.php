@@ -5,12 +5,13 @@ namespace SnowIO\AttributeSetCode\Plugin;
 use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Phrase;
+use SnowIO\AttributeSetCode\Model\AttributeSetCodeRepository;
 
 class ProductRepositoryPlugin
 {
-    private $attributeSetCodeRepository;
+    private AttributeSetCodeRepository $attributeSetCodeRepository;
 
-    public function __construct(\SnowIO\AttributeSetCode\Model\AttributeSetCodeRepository $attributeSetCodeRepository)
+    public function __construct(AttributeSetCodeRepository $attributeSetCodeRepository)
     {
         $this->attributeSetCodeRepository = $attributeSetCodeRepository;
     }
