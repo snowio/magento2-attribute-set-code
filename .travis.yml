@@ -19,12 +19,6 @@ before_install:
   - phpenv config-rm xdebug.ini || true
   - composer self-update 1.10.16
 
-cache:
-  apt: true
-  directories: 
-    - $HOME/.composer/cache
-    - $HOME/bin
-
 install:
   - composer install --no-interaction
   # Install magento
@@ -52,6 +46,12 @@ addons:
 
 services:
   - mysql
+
+cache:
+  apt: true
+  directories:
+    - $HOME/.composer/cache
+    - $HOME/bin
 
 after_failure:
   - test -d ./vendor/ampersand/travis-vanilla-magento/instances/snowepr/var/report/ && for r in ./vendor/ampersand/travis-vanilla-magento/instances/snowepr/var/report/*; do cat $r; done
