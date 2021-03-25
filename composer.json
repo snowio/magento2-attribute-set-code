@@ -25,13 +25,10 @@
             "SnowIO\\AttributeSetCode\\": ""
         }
     },
-    "repositories": [
-        {
+    "repositories": {
+        "foomanmirror": {
             "type": "composer",
-            "url": "https://repo.packagist.com/ampersandhq/"
-        },
-        {
-            "packagist.org": false
+            "url": "https://repo-magento-mirror.fooman.co.nz/"
         }
-    ]
+    }
 }
