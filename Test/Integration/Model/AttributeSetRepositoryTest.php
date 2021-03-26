@@ -566,7 +566,9 @@ class AttributeSetRepositoryTest extends TestCase
                 continue;
             }
             $nonSystemAttributes = \array_udiff($expectedGroupAttributes, $systemAttributesInDefaultAttributeSet,
-                fn(SnowIOAttributeInterface $a, SnowIOAttributeInterface $b) => strcmp($a->getAttributeCode(), $b->getAttributeCode())
+                fn(SnowIOAttributeInterface $a, SnowIOAttributeInterface $b) => strcmp(
+                    $a->getAttributeCode(), $b->getAttributeCode()
+                )
             );
             $expectedGroup->setAttributes($nonSystemAttributes);
         }
