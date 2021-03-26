@@ -13,9 +13,8 @@ use Magento\Framework\Exception\StateException;
 use Magento\Framework\ObjectManagerInterface;
 use SnowIO\AttributeSetCode\Api\AttributeSetRepositoryInterface;
 use SnowIO\AttributeSetCode\Model\AttributeSetCodeRepository;
-use SnowIO\AttributeSetCode\Test\TestCase;
 
-class ProductRepositoryPluginTest extends TestCase
+class ProductRepositoryPluginTest extends \PHPUnit\Framework\TestCase
 {
     const ATTRIBUTE_SET_CODE = 'test-attribute-set';
 

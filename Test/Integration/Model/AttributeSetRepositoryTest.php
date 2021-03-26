@@ -29,9 +29,8 @@ use SnowIO\AttributeSetCode\Api\Data\AttributeGroupInterface;
 use SnowIO\AttributeSetCode\Api\Data\AttributeSetInterface;
 use SnowIO\AttributeSetCode\Model\AttributeSetCodeRepository;
 use SnowIO\AttributeSetCode\Model\EntityTypeCodeRepository;
-use SnowIO\AttributeSetCode\Test\TestCase;
 
-class AttributeSetRepositoryTest extends TestCase
+class AttributeSetRepositoryTest extends \PHPUnit\Framework\TestCase
 {
     public function testCreateImplicitlyEmptyAttributeSet()
     {
