@@ -19,11 +19,13 @@ use Magento\Eav\Model\Config;
 use Magento\Eav\Model\ResourceModel\Entity\Attribute\Collection as AttributeCollection;
 use Magento\Eav\Model\ResourceModel\Entity\Attribute\CollectionFactory as AttributeCollectionFactory;
 use Magento\Framework\Exception\StateException;
+use Magento\Framework\ObjectManagerInterface;
 use SnowIO\AttributeSetCode\Api\Data\AttributeInterface as SnowIOAttributeInterface;
 use Magento\Eav\Model\Entity\Attribute\Group;
 use Magento\Eav\Model\Entity\Type;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\App\ObjectManager;
+use Magento\TestFramework\Helper\Bootstrap;
 use SnowIO\AttributeSetCode\Api\AttributeSetRepositoryInterface as CodedAttributeSetRepository;
 use SnowIO\AttributeSetCode\Api\Data\AttributeGroupInterface;
 use SnowIO\AttributeSetCode\Api\Data\AttributeSetInterface;
@@ -32,27 +34,13 @@ use SnowIO\AttributeSetCode\Model\EntityTypeCodeRepository;
 
 class AttributeSetRepositoryTest extends \PHPUnit\Framework\TestCase
 {
-    public function testCreateImplicitlyEmptyAttributeSet()
+    /** @var ObjectManagerInterface */
+    private $objectManager;
+    
+    public function __construct($name = null, array $data = array(), $dataName = '')
     {
-        $attributeSetData = $this->createAttributeSet()
-            ->setEntityTypeCode('catalog_product')
-            ->setAttributeSetCode('test-attribute-set-1')
-            ->setName('My Test Attribute Set 1')
-            ->setSortOrder(50);
-
-        $this->saveNewAttributeSetAndCheckDb($attributeSetData);
-    }
-
-    public function testCreateExplicitlyEmptyAttributeSet()
-    {
-        $attributeSetData = $this->createAttributeSet()
-            ->setEntityTypeCode('catalog_product')
-            ->setAttributeSetCode('test-attribute-set-1')
-            ->setName('My Test Attribute Set 1')
-            ->setSortOrder(50)
-            ->setAttributeGroups([]);
-
-        $this->saveNewAttributeSetAndCheckDb($attributeSetData);
+      parent::__construct($name, $data, $dataName);
+      $this->objectManager = Bootstrap::getObjectManager();
     }
 
     public function testCreateAttributeSetWithImplicitlyEmptyAttributeGroups()
@@ -491,17 +479,17 @@ class AttributeSetRepositoryTest extends \PHPUnit\Framework\TestCase
 
     private function createAttributeSet(): AttributeSetInterface
     {
-        return ObjectManager::getInstance()->create(AttributeSetInterface::class);
+        return $this->objectManager->create(AttributeSetInterface::class);
     }
 
     private function createAttributeGroup(): AttributeGroupInterface
     {
-        return ObjectManager::getInstance()->create(AttributeGroupInterface::class);
+        return $this->objectManager->create(AttributeGroupInterface::class);
     }
 
     private function createAttribute(): SnowIOAttributeInterface
     {
-        return ObjectManager::getInstance()->create(SnowIOAttributeInterface::class);
+        return $this->objectManager->create(SnowIOAttributeInterface::class);
     }
 
     private function saveNewAttributeSetAndCheckDb(AttributeSetInterface $attributeSet)
