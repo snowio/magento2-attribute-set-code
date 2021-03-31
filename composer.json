@@ -30,5 +30,6 @@
             "type": "composer",
             "url": "https://repo-magento-mirror.fooman.co.nz/"
         }
-    }
+    },
+    "minimum-stability": "dev"
 }
