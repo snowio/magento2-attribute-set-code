@@ -37,6 +37,7 @@ install:
   - php $TRAVIS_BUILD_DIR/travis/prepare_phpunit_config.php $TRAVIS_BUILD_DIR/vendor/ampersand/travis-vanilla-magento/instances/snowepr
 
 script:
+  - which phpunit
   - vendor/bin/phpunit --version
   - vendor/bin/phpunit -c $(pwd)/dev/tests/integration/phpunit.xml.dist --testsuite Integration --debug
 
