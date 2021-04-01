@@ -37,18 +37,10 @@ class AttributeSetRepositoryTest extends \PHPUnit\Framework\TestCase
 {
     private $objectManager;
     
-    /** @var AttributeSetCodeRepository */
-    private $attributeSetCodeRepository;
-    
-    /** @var AttributeSetRepositoryInterface */
-    private $attributeSetRepositoryInterface;
-    
     public function __construct($name = null, array $data = array(), $dataName = '')
     {
         parent::__construct($name, $data, $dataName);
         $this->objectManager = Bootstrap::getObjectManager();
-        $this->attributeSetCodeRepository = $this->objectManager->get(AttributeSetCodeRepository::class);
-        $this->attributeSetRepositoryInterface = $this->objectManager->get(AttributeSetRepositoryInterface::class);
     }
 
     public function testCreateAttributeSetWithImplicitlyEmptyAttributeGroups()

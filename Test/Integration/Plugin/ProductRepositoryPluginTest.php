@@ -13,6 +13,7 @@ use Magento\Framework\Exception\StateException;
 use Magento\Framework\ObjectManagerInterface;
 use SnowIO\AttributeSetCode\Api\AttributeSetRepositoryInterface;
 use SnowIO\AttributeSetCode\Model\AttributeSetCodeRepository;
+use Magento\TestFramework\Helper\Bootstrap;
 
 class ProductRepositoryPluginTest extends \PHPUnit\Framework\TestCase
 {
@@ -30,10 +31,11 @@ class ProductRepositoryPluginTest extends \PHPUnit\Framework\TestCase
 
     public function setUp() : void
     {
-        $this->objectManager = ObjectManager::getInstance();
+        Bootstrap::getInstance()->reinitialize();
+        $this->objectManager = Bootstrap::getObjectManager();
         $this->attributeSetCodeRepository = $this->objectManager->get(AttributeSetCodeRepository::class);
         $this->extensionAttributeRepositoryFactory = $this->objectManager->get(ExtensionAttributesFactory::class);
-        $this->productRepository = ObjectManager::getInstance()->get(ProductRepositoryInterface::class);
+        $this->productRepository = Bootstrap::getObjectManager()->get(ProductRepositoryInterface::class);
         $this->saveProductAttributeSet(self::ATTRIBUTE_SET_CODE);
         $this->attributeSetId = $this->getProductAttributeSetId(self::ATTRIBUTE_SET_CODE);
     }
@@ -100,7 +102,7 @@ class ProductRepositoryPluginTest extends \PHPUnit\Framework\TestCase
             ->setName('My Test Attribute Set')
             ->setSortOrder(50);
 
-        $objectManager = ObjectManager::getInstance();
+        $objectManager = Bootstrap::getObjectManager();
         /** @var AttributeSetRepositoryInterface $attributeSetRepository */
         $attributeSetRepository = $objectManager->get(AttributeSetRepositoryInterface::class);
         $attributeSetRepository->save($attributeSet);
@@ -118,7 +120,7 @@ class ProductRepositoryPluginTest extends \PHPUnit\Framework\TestCase
 
     private function getProductData(string $name): ProductInterface
     {
-        return ObjectManager::getInstance()->create(ProductInterface::class)
+        return Bootstrap::getObjectManager()->create(ProductInterface::class)
             ->setSku('test-product-1')
             ->setPrice(3.00)
             ->setStatus(Status::STATUS_ENABLED)
