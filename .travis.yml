@@ -1,14 +1,18 @@
 language: php
-php: 
+php:
   - 7.3
   - 7.4
 dist: xenial
+git:
+  depth: false
 
 env:
   matrix:
     - TEST_GROUP=magento_latest
     - TEST_GROUP=magento_23
 matrix:
+  allow_failures:
+    - env: TEST_GROUP=magento_23 # Backwards breaking changes prevent 2.3 suite from working
   exclude:
     - php: 7.4
       env: TEST_GROUP=magento_23
@@ -22,19 +26,19 @@ before_install:
 install:
   - composer install --no-interaction
   # Install magento
-  - if [[ $TEST_GROUP = magento_23 ]];     then  NAME=snowepr FULL_INSTALL=0 VERSION=2.3.6 . ./vendor/bin/travis-install-magento.sh; fi
-  - if [[ $TEST_GROUP = magento_latest ]]; then  NAME=snowepr FULL_INSTALL=0               . ./vendor/bin/travis-install-magento.sh; fi
+  - if [[ $TEST_GROUP = magento_23 ]];     then  NAME=snowmodule FULL_INSTALL=0 VERSION=2.3.6 . ./vendor/bin/travis-install-magento.sh; fi
+  - if [[ $TEST_GROUP = magento_latest ]]; then  NAME=snowmodule FULL_INSTALL=0               . ./vendor/bin/travis-install-magento.sh; fi
   # Install this module
-  - cd vendor/ampersand/travis-vanilla-magento/instances/snowepr
+  - cd vendor/ampersand/travis-vanilla-magento/instances/snowmodule
   - export COMPOSER_MEMORY_LIMIT=-1
-  - composer config repo.snowepr git "../../../../../"
-  - composer require -vvv snowio/magento2-extended-product-repository:"dev-$TRAVIS_BRANCH" || composer require -vvv snowio/magento2-extended-product-repository:"$TRAVIS_BRANCH"
+  - composer config repo.snowmodule git "$TRAVIS_BUILD_DIR"
+  - composer require -vvv snowio/magento2-attribute-set-code:"dev-$TRAVIS_BRANCH" || composer require -vvv snowio/magento2-attribute-set-code:"$TRAVIS_BRANCH"
   # Configure for integration tests
   - mysql -uroot -e 'SET @@global.sql_mode = NO_ENGINE_SUBSTITUTION; DROP DATABASE IF EXISTS magento_integration_tests; CREATE DATABASE magento_integration_tests;'
   - cp dev/tests/integration/etc/install-config-mysql.travis-no-rabbitmq.php.dist dev/tests/integration/etc/install-config-mysql.php
-  - php $TRAVIS_BUILD_DIR/travis/prepare_phpunit_config.php
+  - php $TRAVIS_BUILD_DIR/travis/prepare_phpunit_config.php $TRAVIS_BUILD_DIR/vendor/ampersand/travis-vanilla-magento/instances/snowepr
 
-script: 
+script:
   - vendor/bin/phpunit -c $(pwd)/dev/tests/integration/phpunit.xml.dist --testsuite Integration
 
 addons:
@@ -54,8 +58,8 @@ cache:
     - $HOME/bin
 
 after_failure:
-  - test -d ./vendor/ampersand/travis-vanilla-magento/instances/snowepr/var/report/ && for r in ./vendor/ampersand/travis-vanilla-magento/instances/snowepr/var/report/*; do cat $r; done
-  - test -f ./vendor/ampersand/travis-vanilla-magento/instances/snowepr/var/log/system.log && grep -v "Broken reference" ./vendor/ampersand/travis-vanilla-magento/instances/snowepr/var/log/system.log
-  - test -f ./vendor/ampersand/travis-vanilla-magento/instances/snowepr/var/log/exception.log && cat ./vendor/ampersand/travis-vanilla-magento/instances/snowepr/var/log/exception.log
-  - test -f ./vendor/ampersand/travis-vanilla-magento/instances/snowepr/var/log/support_report.log && grep -v "Broken reference" ./vendor/ampersand/travis-vanilla-magento/instances/snowepr/var/log/support_report.log
+  - test -d ./vendor/ampersand/travis-vanilla-magento/instances/snowmodule/var/report/ && for r in ./vendor/ampersand/travis-vanilla-magento/instances/snowmodule/var/report/*; do cat $r; done
+  - test -f ./vendor/ampersand/travis-vanilla-magento/instances/snowmodule/var/log/system.log && grep -v "Broken reference" ./vendor/ampersand/travis-vanilla-magento/instances/snowmodule/var/log/system.log
+  - test -f ./vendor/ampersand/travis-vanilla-magento/instances/snowmodule/var/log/exception.log && cat ./vendor/ampersand/travis-vanilla-magento/instances/snowmodule/var/log/exception.log
+  - test -f ./vendor/ampersand/travis-vanilla-magento/instances/snowmodule/var/log/support_report.log && grep -v "Broken reference" ./vendor/ampersand/travis-vanilla-magento/instances/snowmodule/var/log/support_report.log
   - sleep 10;

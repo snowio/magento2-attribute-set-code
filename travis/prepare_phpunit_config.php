@@ -11,7 +11,7 @@ if (!is_file($magentoPath . '/app/etc/di.xml')) {
     throw new \Exception('Could not detect magento root: ' . $magentoPath);
 }
 $configPath = "$magentoPath/dev/tests/integration/phpunit.xml.dist";
-$travisBuildDir = \getenv('TRAVIS_BUILD_DIR');
+$travisBuildDir = realpath(__DIR__ . '/../');
 $packageName = \exec("composer config name -d $travisBuildDir");
 
 $config = new \SimpleXMLElement($configPath, 0, true);
