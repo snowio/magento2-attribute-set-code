@@ -11,6 +11,8 @@ env:
     - TEST_GROUP=magento_latest
     - TEST_GROUP=magento_23
 matrix:
+  allow_failures:
+    - env: TEST_GROUP=magento_23 # Backwards breaking changes prevent 2.3 suite from working
   exclude:
     - php: 7.4
       env: TEST_GROUP=magento_23
