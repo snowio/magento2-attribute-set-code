@@ -18,6 +18,7 @@ use Magento\Eav\Api\Data\AttributeInterfaceFactory;
 use Magento\Eav\Model\Config;
 use Magento\Eav\Model\ResourceModel\Entity\Attribute\Collection as AttributeCollection;
 use Magento\Eav\Model\ResourceModel\Entity\Attribute\CollectionFactory as AttributeCollectionFactory;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\TestFramework\Helper\Bootstrap;
 use Magento\Framework\Exception\StateException;
 use SnowIO\AttributeSetCode\Api\Data\AttributeInterface as SnowIOAttributeInterface;
@@ -796,12 +797,12 @@ class AttributeSetRepositoryTest extends \PHPUnit\Framework\TestCase
     {
         /** @var ProductRepositoryInterface $productRepository */
         $productRepository = Bootstrap::getObjectManager()->get(ProductRepositoryInterface::class);
-        try {
-            $productRepository->delete($product);
-        } catch (StateException $e) {
 
+        try {
+            $productRepository->save($product);
+        } catch (StateException $e) {
+            throw new StateException(__($e->getMessage()), $e);
         }
-        $productRepository->save($product);
     }
 
     private static function saveNewSizeAttribute()

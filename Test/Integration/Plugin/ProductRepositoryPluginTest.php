@@ -111,11 +111,10 @@ class ProductRepositoryPluginTest extends \PHPUnit\Framework\TestCase
     private function saveNewProduct(ProductInterface $product)
     {
         try {
-            $this->productRepository->delete($product);
+            $this->productRepository->save($product);
         } catch (StateException $e) {
-
+            throw new StateException(__($e->getMessage()), $e);
         }
-        $this->productRepository->save($product);
     }
 
     private function getProductData(string $name): ProductInterface
