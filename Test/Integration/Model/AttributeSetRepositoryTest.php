@@ -18,7 +18,6 @@ use Magento\Eav\Api\Data\AttributeInterfaceFactory;
 use Magento\Eav\Model\Config;
 use Magento\Eav\Model\ResourceModel\Entity\Attribute\Collection as AttributeCollection;
 use Magento\Eav\Model\ResourceModel\Entity\Attribute\CollectionFactory as AttributeCollectionFactory;
-use Magento\Framework\Exception\LocalizedException;
 use Magento\TestFramework\Helper\Bootstrap;
 use Magento\Framework\Exception\StateException;
 use SnowIO\AttributeSetCode\Api\Data\AttributeInterface as SnowIOAttributeInterface;
