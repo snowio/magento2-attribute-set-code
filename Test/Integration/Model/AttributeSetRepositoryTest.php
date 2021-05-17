@@ -18,42 +18,29 @@ use Magento\Eav\Api\Data\AttributeInterfaceFactory;
 use Magento\Eav\Model\Config;
 use Magento\Eav\Model\ResourceModel\Entity\Attribute\Collection as AttributeCollection;
 use Magento\Eav\Model\ResourceModel\Entity\Attribute\CollectionFactory as AttributeCollectionFactory;
+use Magento\TestFramework\Helper\Bootstrap;
 use Magento\Framework\Exception\StateException;
 use SnowIO\AttributeSetCode\Api\Data\AttributeInterface as SnowIOAttributeInterface;
 use Magento\Eav\Model\Entity\Attribute\Group;
 use Magento\Eav\Model\Entity\Type;
 use Magento\Framework\Api\SearchCriteriaBuilder;
-use Magento\Framework\App\ObjectManager;
 use SnowIO\AttributeSetCode\Api\AttributeSetRepositoryInterface as CodedAttributeSetRepository;
 use SnowIO\AttributeSetCode\Api\Data\AttributeGroupInterface;
 use SnowIO\AttributeSetCode\Api\Data\AttributeSetInterface;
+use SnowIO\AttributeSetCode\Model\Attribute;
+use SnowIO\AttributeSetCode\Model\AttributeGroup;
 use SnowIO\AttributeSetCode\Model\AttributeSetCodeRepository;
 use SnowIO\AttributeSetCode\Model\EntityTypeCodeRepository;
-use SnowIO\AttributeSetCode\Test\TestCase;
+use SnowIO\AttributeSetCode\Model\AttributeSet;
 
-class AttributeSetRepositoryTest extends TestCase
+class AttributeSetRepositoryTest extends \PHPUnit\Framework\TestCase
 {
-    public function testCreateImplicitlyEmptyAttributeSet()
+    private $objectManager;
+    
+    public function __construct($name = null, array $data = array(), $dataName = '')
     {
-        $attributeSetData = $this->createAttributeSet()
-            ->setEntityTypeCode('catalog_product')
-            ->setAttributeSetCode('test-attribute-set-1')
-            ->setName('My Test Attribute Set 1')
-            ->setSortOrder(50);
-
-        $this->saveNewAttributeSetAndCheckDb($attributeSetData);
-    }
-
-    public function testCreateExplicitlyEmptyAttributeSet()
-    {
-        $attributeSetData = $this->createAttributeSet()
-            ->setEntityTypeCode('catalog_product')
-            ->setAttributeSetCode('test-attribute-set-1')
-            ->setName('My Test Attribute Set 1')
-            ->setSortOrder(50)
-            ->setAttributeGroups([]);
-
-        $this->saveNewAttributeSetAndCheckDb($attributeSetData);
+        parent::__construct($name, $data, $dataName);
+        $this->objectManager = Bootstrap::getObjectManager();
     }
 
     public function testCreateAttributeSetWithImplicitlyEmptyAttributeGroups()
@@ -490,19 +477,19 @@ class AttributeSetRepositoryTest extends TestCase
         self::assertAttributeSetCorrectInDb($expectedResult);
     }
 
-    private function createAttributeSet(): AttributeSetInterface
+    private function createAttributeSet(): AttributeSet
     {
-        return ObjectManager::getInstance()->create(AttributeSetInterface::class);
+        return $this->objectManager->create(AttributeSet::class);
     }
 
     private function createAttributeGroup(): AttributeGroupInterface
     {
-        return ObjectManager::getInstance()->create(AttributeGroupInterface::class);
+        return $this->objectManager->create(AttributeGroup::class);
     }
 
     private function createAttribute(): SnowIOAttributeInterface
     {
-        return ObjectManager::getInstance()->create(SnowIOAttributeInterface::class);
+        return $this->objectManager->create(Attribute::class);
     }
 
     private function saveNewAttributeSetAndCheckDb(AttributeSetInterface $attributeSet)
@@ -514,7 +501,7 @@ class AttributeSetRepositoryTest extends TestCase
 
     private function saveAttributeSet(AttributeSetInterface $attributeSet)
     {
-        $objectManager = ObjectManager::getInstance();
+        $objectManager = Bootstrap::getObjectManager();
         /** @var CodedAttributeSetRepository $attributeSetRepository */
         $attributeSetRepository = $objectManager->get(CodedAttributeSetRepository::class);
         self::assertNull($attributeSetRepository->save($attributeSet));
@@ -522,7 +509,7 @@ class AttributeSetRepositoryTest extends TestCase
 
     private static function assertAttributeSetCorrectInDb(AttributeSetInterface $expected)
     {
-        $objectManager = ObjectManager::getInstance();
+        $objectManager = Bootstrap::getObjectManager();
         /** @var AttributeSetRepositoryInterface $attributeSetRepository */
         $attributeSetRepository = $objectManager->get(AttributeSetRepositoryInterface::class);
         /** @var AttributeSetCodeRepository $attributeSetCodeRepository */
@@ -566,7 +553,9 @@ class AttributeSetRepositoryTest extends TestCase
                 continue;
             }
             $nonSystemAttributes = \array_udiff($expectedGroupAttributes, $systemAttributesInDefaultAttributeSet,
-                fn(SnowIOAttributeInterface $a, SnowIOAttributeInterface $b) => strcmp($a->getAttributeCode(), $b->getAttributeCode())
+                function (SnowIOAttributeInterface $a, SnowIOAttributeInterface $b) {
+                    return strcmp($a->getAttributeCode(), $b->getAttributeCode());
+                }
             );
             $expectedGroup->setAttributes($nonSystemAttributes);
         }
@@ -580,11 +569,13 @@ class AttributeSetRepositoryTest extends TestCase
      */
     private static function addSystemAttributesToExpectedGroups(string $entityTypeCode, array $expectedGroups): array
     {
-        $objectManager = ObjectManager::getInstance();
+        $objectManager = Bootstrap::getObjectManager();
         /** @var EntityTypeCodeRepository $entityTypeCodeRepository */
         $entityTypeCodeRepository = $objectManager->get(EntityTypeCodeRepository::class);
 
-        $expectedGroupCodes = \array_map(fn(AttributeGroupInterface $group) => $group->getAttributeGroupCode(), $expectedGroups);
+        $expectedGroupCodes = \array_map(function (AttributeGroupInterface $group) {
+            return $group->getAttributeGroupCode();
+        }, $expectedGroups);
         $expectedGroups = \array_combine($expectedGroupCodes, $expectedGroups);
 
         $defaultAttributeSetId = $entityTypeCodeRepository->getDefaultAttributeSetId($entityTypeCode);
@@ -592,11 +583,15 @@ class AttributeSetRepositoryTest extends TestCase
         foreach ($defaultAttributeGroups as $attributeGroup) {
             $attributeGroupId = $attributeGroup->getAttributeGroupId();
             $attributes = self::getAttributesByGroup($attributeGroupId);
-            $systemAttributes = \array_filter($attributes, fn(AttributeInterface $attribute) => !$attribute->getIsUserDefined());
+            $systemAttributes = \array_filter($attributes, function (AttributeInterface $attribute) {
+                return !$attribute->getIsUserDefined();
+            });
             if (empty($systemAttributes)) {
                 continue;
             }
-            $systemAttributes = \array_map(fn(AttributeInterface $attribute) => self::convertEavAttribute($attribute, $attributeGroupId), $systemAttributes);
+            $systemAttributes = \array_map(function (AttributeInterface $attribute) use ($attributeGroupId) {
+                return self::convertEavAttribute($attribute, $attributeGroupId);
+            }, $systemAttributes);
 
             $attributeGroupCode = $attributeGroup->getAttributeGroupCode();
             //check if the group is in the expected attribute group
@@ -621,7 +616,7 @@ class AttributeSetRepositoryTest extends TestCase
     {
         foreach ($attribute->getAttributeSetInfo() as $attributeSetInfo) {
             if ($attributeSetInfo['group_id'] == $attributeGroupId) {
-                return ObjectManager::getInstance()->create(SnowIOAttributeInterface::class)
+                return Bootstrap::getObjectManager()->create(SnowIOAttributeInterface::class)
                     ->setAttributeCode($attribute->getAttributeCode())
                     ->setSortOrder($attributeSetInfo['sort']);
             }
@@ -691,7 +686,7 @@ class AttributeSetRepositoryTest extends TestCase
      */
     private static function getAttributeGroups(int $attributeSetId): array
     {
-        $objectManager = ObjectManager::getInstance();
+        $objectManager = Bootstrap::getObjectManager();
         /** @var AttributeGroupRepositoryInterface $attributeGroupRepository */
         $attributeGroupRepository = $objectManager->get(AttributeGroupRepositoryInterface::class);
 
@@ -714,7 +709,7 @@ class AttributeSetRepositoryTest extends TestCase
     private static function getAttributesByGroup(int $attributeGroupId): array
     {
         /** @var AttributeCollection $attributeCollection */
-        $attributeCollection = ObjectManager::getInstance()->get(AttributeCollectionFactory::class)->create();
+        $attributeCollection = Bootstrap::getObjectManager()->get(AttributeCollectionFactory::class)->create();
         $attributeCollection->setAttributeGroupFilter($attributeGroupId);
         $attributeCollection->addSetInfo();
         return $attributeCollection->getItems();
@@ -722,7 +717,7 @@ class AttributeSetRepositoryTest extends TestCase
 
     private static function removeAttributeSet(AttributeSetInterface $attributeSet)
     {
-        $objectManager = ObjectManager::getInstance();
+        $objectManager = Bootstrap::getObjectManager();
         /** @var AttributeSetCodeRepository $attributeSetCodeRepository */
         $attributeSetCodeRepository = $objectManager->get(AttributeSetCodeRepository::class);
         /** @var AttributeSetRepositoryInterface $attributeSetRepository */
@@ -737,7 +732,7 @@ class AttributeSetRepositoryTest extends TestCase
 
     private static function getEntityTypeId(string $entityTypeCode): int
     {
-        $objectManager = ObjectManager::getInstance();
+        $objectManager = Bootstrap::getObjectManager();
         /** @var Type $entityType */
         $entityType = $objectManager->create(Type::class)->loadByCode($entityTypeCode);
         return $entityType->getEntityTypeId();
@@ -745,7 +740,7 @@ class AttributeSetRepositoryTest extends TestCase
 
     private static function getDefaultAttributeSetId(string $entityTypeCode): int
     {
-        $objectManager = ObjectManager::getInstance();
+        $objectManager = Bootstrap::getObjectManager();
         /** @var EntityTypeCodeRepository $entityTypeCodeRepository */
         $entityTypeCodeRepository = $objectManager->get(EntityTypeCodeRepository::class);
         return $entityTypeCodeRepository->getDefaultAttributeSetId($entityTypeCode);
@@ -754,7 +749,7 @@ class AttributeSetRepositoryTest extends TestCase
     private static function getConfigurableProductData(string $name, array $configurableAttributes): ProductInterface
     {
         /** @var ProductInterface $product */
-        $product = ObjectManager::getInstance()->create(ProductInterface::class);
+        $product = Bootstrap::getObjectManager()->create(ProductInterface::class);
         $product
             ->setSku('test-product-1')
             ->setPrice(3.00)
@@ -771,9 +766,9 @@ class AttributeSetRepositoryTest extends TestCase
 
     private static function createConfigurableProductOptions(array $attributeCodes): array
     {
-        $optionFactory = ObjectManager::getInstance()->get(OptionInterfaceFactory::class);
+        $optionFactory = Bootstrap::getObjectManager()->get(OptionInterfaceFactory::class);
         /** @var OptionValueInterface $optionValue */
-        $optionValue = ObjectManager::getInstance()->get(OptionValueInterfaceFactory::class)->create();
+        $optionValue = Bootstrap::getObjectManager()->get(OptionValueInterfaceFactory::class)->create();
         $optionValue->setValueIndex(1);
         return \array_map(
             function (string $attributeCode) use ($optionFactory, $optionValue) {
@@ -792,7 +787,7 @@ class AttributeSetRepositoryTest extends TestCase
     private static function getAttributeId(string $attributeCode)
     {
         /** @var AttributeRepositoryInterface $attributeRepository */
-        $attributeRepository = ObjectManager::getInstance()->get(AttributeRepositoryInterface::class);
+        $attributeRepository = Bootstrap::getObjectManager()->get(AttributeRepositoryInterface::class);
         $attribute = $attributeRepository->get('catalog_product', $attributeCode);
         return $attribute->getAttributeId();
     }
@@ -800,22 +795,22 @@ class AttributeSetRepositoryTest extends TestCase
     private static function saveNewProduct(ProductInterface $product)
     {
         /** @var ProductRepositoryInterface $productRepository */
-        $productRepository = ObjectManager::getInstance()->get(ProductRepositoryInterface::class);
-        try {
-            $productRepository->delete($product);
-        } catch (StateException $e) {
+        $productRepository = Bootstrap::getObjectManager()->get(ProductRepositoryInterface::class);
 
+        try {
+            $productRepository->save($product);
+        } catch (StateException $e) {
+            
         }
-        $productRepository->save($product);
     }
 
     private static function saveNewSizeAttribute()
     {
         /** @var $attribute \Magento\Catalog\Model\ResourceModel\Eav\Attribute */
-        $attribute = ObjectManager::getInstance()->create(\Magento\Catalog\Model\ResourceModel\Eav\Attribute::class);
-
+        $attribute = Bootstrap::getObjectManager()->create(\Magento\Catalog\Model\ResourceModel\Eav\Attribute::class);
+        
         /** @var AttributeRepositoryInterface $attributeRepository */
-        $attributeRepository = ObjectManager::getInstance()->get(AttributeRepositoryInterface::class);
+        $attributeRepository = Bootstrap::getObjectManager()->get(AttributeRepositoryInterface::class);
 
         $attribute->setData(
             [
