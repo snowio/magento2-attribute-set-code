@@ -1,6 +1,7 @@
 <?php
 namespace SnowIO\AttributeSetCode\Test\Integration\Model;
 
+use Magento\Framework\App\Area;
 use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Catalog\Model\Product\Attribute\Source\Status;
@@ -806,12 +807,24 @@ class AttributeSetRepositoryTest extends \PHPUnit\Framework\TestCase
         /** @var ProductRepositoryInterface $productRepository */
         $productRepository = Bootstrap::getObjectManager()->get(ProductRepositoryInterface::class);
 
+        /** @var \Magento\Framework\Registry $state */
+        $registry = Bootstrap::getObjectManager()->get(\Magento\Framework\Registry::class);
+        $currentSecure = $registry->registry('isSecureArea');
+        $registry->unregister('isSecureArea');
+        $registry->register('isSecureArea', true);
+
         try {
             $productRepository->deleteById($product->getSku());
-            $productRepository->save($product);
-        } catch (StateException $e) {
         } catch (\Magento\Framework\Exception\NoSuchEntityException $exception) {
         }
+
+        try {
+            $productRepository->save($product);
+        } catch (StateException $e) {
+        }
+
+        $registry->unregister('isSecureArea');
+        $registry->register('isSecureArea', $currentSecure);
     }
 
     private static function saveNewSizeAttribute()
