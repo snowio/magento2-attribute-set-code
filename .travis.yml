@@ -8,7 +8,7 @@ git:
 
 env:
   matrix:
-    - TEST_GROUP=magento_latest
+    - TEST_GROUP=magento_latest 
     - TEST_GROUP=magento_23
 matrix:
   allow_failures:
