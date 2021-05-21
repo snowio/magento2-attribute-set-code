@@ -807,7 +807,7 @@ class AttributeSetRepositoryTest extends \PHPUnit\Framework\TestCase
         $productRepository = Bootstrap::getObjectManager()->get(ProductRepositoryInterface::class);
 
         try {
-            $productRepository->deleteById($product->getSku());
+            //$productRepository->deleteById($product->getSku());
             $productRepository->save($product);
         } catch (StateException $e) {
         } catch (\Magento\Framework\Exception\NoSuchEntityException $exception) {
