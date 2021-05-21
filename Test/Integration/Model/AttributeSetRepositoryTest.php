@@ -1,6 +1,7 @@
 <?php
 namespace SnowIO\AttributeSetCode\Test\Integration\Model;
 
+use Magento\Framework\App\Area;
 use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Catalog\Model\Product\Attribute\Source\Status;
@@ -725,6 +726,15 @@ class AttributeSetRepositoryTest extends \PHPUnit\Framework\TestCase
 
         $entityTypeId = self::getEntityTypeId($attributeSet->getEntityTypeCode());
         $attributeSetId = $attributeSetCodeRepository->getAttributeSetId($entityTypeId, $attributeSet->getAttributeSetCode());
+        if ($attributeSetId === null) {
+            $searchCriteria = $objectManager->create(SearchCriteriaBuilder::class)->create();
+            foreach ($attributeSetRepository->getList($searchCriteria)->getItems() as $possibleAttributeSet) {
+                if ($possibleAttributeSet->getAttributeSetName() === $attributeSet->getName()) {
+                    $attributeSetId = $possibleAttributeSet->getAttributeSetId();
+                    break;
+                }
+            }
+        }
         if ($attributeSetId !== null) {
             $attributeSetRepository->deleteById($attributeSetId);
         }
@@ -797,11 +807,24 @@ class AttributeSetRepositoryTest extends \PHPUnit\Framework\TestCase
         /** @var ProductRepositoryInterface $productRepository */
         $productRepository = Bootstrap::getObjectManager()->get(ProductRepositoryInterface::class);
 
+        /** @var \Magento\Framework\Registry $state */
+        $registry = Bootstrap::getObjectManager()->get(\Magento\Framework\Registry::class);
+        $currentSecure = $registry->registry('isSecureArea');
+        $registry->unregister('isSecureArea');
+        $registry->register('isSecureArea', true);
+
+        try {
+            $productRepository->deleteById($product->getSku());
+        } catch (\Magento\Framework\Exception\NoSuchEntityException $exception) {
+        }
+
         try {
             $productRepository->save($product);
         } catch (StateException $e) {
-            
         }
+
+        $registry->unregister('isSecureArea');
+        $registry->register('isSecureArea', $currentSecure);
     }
 
     private static function saveNewSizeAttribute()
