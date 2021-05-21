@@ -725,6 +725,15 @@ class AttributeSetRepositoryTest extends \PHPUnit\Framework\TestCase
 
         $entityTypeId = self::getEntityTypeId($attributeSet->getEntityTypeCode());
         $attributeSetId = $attributeSetCodeRepository->getAttributeSetId($entityTypeId, $attributeSet->getAttributeSetCode());
+        if ($attributeSetId === null) {
+            $searchCriteria = $objectManager->create(SearchCriteriaBuilder::class)->create();
+            foreach ($attributeSetRepository->getList($searchCriteria)->getItems() as $possibleAttributeSet) {
+                if ($possibleAttributeSet->getAttributeSetName() === $attributeSet->getName()) {
+                    $attributeSetId = $possibleAttributeSet->getAttributeSetId();
+                    break;
+                }
+            }
+        }
         if ($attributeSetId !== null) {
             $attributeSetRepository->deleteById($attributeSetId);
         }
@@ -798,9 +807,10 @@ class AttributeSetRepositoryTest extends \PHPUnit\Framework\TestCase
         $productRepository = Bootstrap::getObjectManager()->get(ProductRepositoryInterface::class);
 
         try {
+            $productRepository->deleteById($product->getSku());
             $productRepository->save($product);
         } catch (StateException $e) {
-            
+        } catch (\Magento\Framework\Exception\NoSuchEntityException $exception) {
         }
     }
 
