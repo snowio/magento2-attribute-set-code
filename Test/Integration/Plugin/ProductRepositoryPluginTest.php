@@ -14,6 +14,7 @@ use Magento\Framework\ObjectManagerInterface;
 use SnowIO\AttributeSetCode\Api\AttributeSetRepositoryInterface;
 use SnowIO\AttributeSetCode\Model\AttributeSetCodeRepository;
 use Magento\TestFramework\Helper\Bootstrap;
+use Magento\Framework\Exception\NoSuchEntityException;
 
 class ProductRepositoryPluginTest extends \PHPUnit\Framework\TestCase
 {
@@ -74,6 +75,8 @@ class ProductRepositoryPluginTest extends \PHPUnit\Framework\TestCase
     {
         $product = $this->getProductData(__METHOD__)->setAttributeSetId($this->attributeSetId);
         $this->saveNewProduct($product);
+        $loadedProduct = $this->productRepository->get($product->getSku());
+        $this->assertEquals($this->attributeSetId, $loadedProduct->getAttributeSetId());
     }
 
     public function testBothAttributeSetIdAndAttributeSetCodeSpecified()
@@ -110,11 +113,27 @@ class ProductRepositoryPluginTest extends \PHPUnit\Framework\TestCase
 
     private function saveNewProduct(ProductInterface $product)
     {
+        /** @var ProductRepositoryInterface $productRepository */
+        $productRepository = Bootstrap::getObjectManager()->get(ProductRepositoryInterface::class);
+
+        /** @var \Magento\Framework\Registry $state */
+        $registry = Bootstrap::getObjectManager()->get(\Magento\Framework\Registry::class);
+        $currentSecure = $registry->registry('isSecureArea');
+        $registry->unregister('isSecureArea');
+        $registry->register('isSecureArea', true);
+
         try {
-            $this->productRepository->save($product);
-        } catch (StateException $e) {
-            
+            $productRepository->deleteById($product->getSku());
+        } catch (NoSuchEntityException $exception) {
         }
+
+        try {
+            $productRepository->save($product);
+        } catch (StateException $e) {
+        }
+
+        $registry->unregister('isSecureArea');
+        $registry->register('isSecureArea', $currentSecure);
     }
 
     private function getProductData(string $name): ProductInterface

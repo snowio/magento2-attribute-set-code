@@ -19,6 +19,7 @@ use Magento\Eav\Api\Data\AttributeInterfaceFactory;
 use Magento\Eav\Model\Config;
 use Magento\Eav\Model\ResourceModel\Entity\Attribute\Collection as AttributeCollection;
 use Magento\Eav\Model\ResourceModel\Entity\Attribute\CollectionFactory as AttributeCollectionFactory;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\TestFramework\Helper\Bootstrap;
 use Magento\Framework\Exception\StateException;
 use SnowIO\AttributeSetCode\Api\Data\AttributeInterface as SnowIOAttributeInterface;
@@ -37,11 +38,27 @@ use SnowIO\AttributeSetCode\Model\AttributeSet;
 class AttributeSetRepositoryTest extends \PHPUnit\Framework\TestCase
 {
     private $objectManager;
-    
+
+    private static $createdAttributeSets = [];
+
     public function __construct($name = null, array $data = array(), $dataName = '')
     {
         parent::__construct($name, $data, $dataName);
         $this->objectManager = Bootstrap::getObjectManager();
+    }
+
+    protected function tearDown(): void
+    {
+        $objectManager = Bootstrap::getObjectManager();
+        /** @var AttributeSetRepositoryInterface $attributeSetRepository */
+        $attributeSetRepository = $objectManager->create(AttributeSetRepositoryInterface::class);
+
+        foreach (self::$createdAttributeSets as $createdAttributeSetId) {
+            try {
+                $attributeSetRepository->deleteById($createdAttributeSetId);
+            } catch (NoSuchEntityException $exception) {
+            }
+        }
     }
 
     public function testCreateAttributeSetWithImplicitlyEmptyAttributeGroups()
@@ -521,6 +538,7 @@ class AttributeSetRepositoryTest extends \PHPUnit\Framework\TestCase
         $actual = $attributeSetRepository->get($attributeSetId);
 
         self::assertAttributeSetAsExpected($expected, $actual);
+        self::$createdAttributeSets[] = $actual->getAttributeSetId();
     }
 
     private static function assertAttributeSetAsExpected(AttributeSetInterface $expected, \Magento\Eav\Api\Data\AttributeSetInterface $actual)
@@ -815,7 +833,7 @@ class AttributeSetRepositoryTest extends \PHPUnit\Framework\TestCase
 
         try {
             $productRepository->deleteById($product->getSku());
-        } catch (\Magento\Framework\Exception\NoSuchEntityException $exception) {
+        } catch (NoSuchEntityException $exception) {
         }
 
         try {
@@ -834,6 +852,14 @@ class AttributeSetRepositoryTest extends \PHPUnit\Framework\TestCase
         
         /** @var AttributeRepositoryInterface $attributeRepository */
         $attributeRepository = Bootstrap::getObjectManager()->get(AttributeRepositoryInterface::class);
+        try {
+            $attributeId = $attributeRepository->get('catalog_product', 'size')->getAttributeId();
+            if ($attributeId) {
+                $attribute->setData('attribute_id', $attributeId);
+            }
+        } catch (NoSuchEntityException $exception) {
+
+        }
 
         $attribute->setData(
             [
