@@ -9,8 +9,8 @@
         }
     ],
     "require": {
-        "php": "^7.4",
-        "magento/framework": "^103",
+        "php": "^7.4||^8.1",
+        "magento/framework": "^102||^103||^104",
         "magento/module-eav": "^102"
     },
     "require-dev": {
